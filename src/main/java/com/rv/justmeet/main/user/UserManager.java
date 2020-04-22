@@ -3,14 +3,9 @@ package com.rv.justmeet.main.user;
 import com.rv.justmeet.exceptions.*;
 import com.rv.justmeet.main.controller.UserController;
 import com.rv.justmeet.main.core.MySQLConnection;
-import com.rv.justmeet.main.core.SoftwareManager;
-import com.rv.justmeet.main.event.EventsManager;
-import com.rv.justmeet.utility.iOUtility;
 
-import java.io.IOException;
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
-import static com.rv.justmeet.main.core.SoftwareManager.scanner;
-import static com.rv.justmeet.main.core.SoftwareManager.stringReader;
+import static com.rv.justmeet.utility.iOUtility.*;
+
 
 /**
  * Classe singleton che gestisce un utente registrato o non
@@ -69,13 +64,13 @@ public class UserManager {
      */
     private String creaQueryRegistrazione() {
             final String email = inserimentoEmailRegistrazione();
-            final String password = iOUtility.inserisciStringa("password", 8,30);
-            final String nome = iOUtility.inserisciStringa("nome",3,30);
-            final String cognome = iOUtility.inserisciStringa("cognome",30,30);
-            final int eta = iOUtility.inserisciInt("eta",14,105,"l'eta' deve essere maggiore di 14 anni");
+            final String password = inserisciStringa("password", 8,30);
+            final String nome = inserisciStringa("nome",3,30);
+            final String cognome = inserisciStringa("cognome",30,30);
+            final int eta = inserisciInt("eta",14,105,"l'eta' deve essere maggiore di 14 anni");
             printer.accept("I dati inseriti sono corretti? Effettuare la registrazione? (S/N)");
             String scelta;
-            while(!(scelta = SoftwareManager.getString().toUpperCase()).equals("S")) {
+            while(!(scelta = getString().toUpperCase()).equals("S")) {
                 if ("N".equals(scelta)) {
                     printer.accept("Registrazione non effettuata!");
                     return null;
@@ -94,7 +89,7 @@ public class UserManager {
      */
     private String inserimentoEmailRegistrazione() {
         printer.accept("Per effettuare la registrazione, compila i seguenti campi: \nInserire l'indirizzo email: ");
-        final String email = SoftwareManager.getString();
+        final String email = getString();
         try {
             if (!email.contains("@"))
                 throw new WrongMailException();
@@ -117,9 +112,9 @@ public class UserManager {
      */
     private LoginData inserimentoDatiLogin(){
         printer.accept("Inserire email: ");
-        final String email = SoftwareManager.getString();
+        final String email = getString();
         printer.accept("Inserire password: ");
-        final String password = SoftwareManager.getString();
+        final String password = getString();
         return new LoginData(email, password);
     }
 
@@ -131,18 +126,13 @@ public class UserManager {
     private boolean datiLoginErrati(){
         String scelta;
         printer.accept("Dati d'accesso errati, riprovare? (S/N)");
-        try {
-            while(!(scelta = stringReader.readLine().toUpperCase()).equals("N")) {
-                if ("S".equals(scelta)) {
-                    login();
-                    return true;
-                } else {
-                    printer.accept("Risposta non accettata! Riprovare!");
-                }
+        while(!(scelta = getString().toUpperCase()).equals("N")) {
+            if ("S".equals(scelta)) {
+                login();
+                return true;
+            } else {
+                printer.accept("Risposta non accettata! Riprovare!");
             }
-        }catch (IOException e){
-            printer.accept("Errore nell'inserimento!");
-            datiLoginErrati();
         }
         return false;
     }

@@ -1,12 +1,14 @@
 package com.rv.justmeet.main.event;
 
 import com.rv.justmeet.main.controller.EventController;
+import com.rv.justmeet.main.controller.EventDysplayerController;
 import com.rv.justmeet.main.core.MySQLConnection;
 import com.rv.justmeet.main.core.SoftwareManager;
 import com.rv.justmeet.main.user.LoggedUser;
 
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
-import static com.rv.justmeet.main.core.SoftwareManager.scanner;
+import static com.rv.justmeet.utility.iOUtility.printer;
+import static com.rv.justmeet.utility.iOUtility.scanner;
+import static com.rv.justmeet.utility.iOUtility.getString;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,13 +28,13 @@ public class EventsDisplayer {
     public static void visualizzaBacheca(){
         boolean risultato = false;
         try {
-            ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT eventsdb.id,categoriesdb.nome,titolo,descrizione,citta,data,prezzo FROM `eventsdb` JOIN `categoriesdb`ON categoria = categoriesdb.id"
-            );
+            ResultSet bacheca = EventDysplayerController.visualizzaBacheca();
 
             while (bacheca.next()) {
                 risultato = true;
-                printer.accept(bacheca.getString("id")+") \nCategoria: "+
+                printer.accept(
+                        bacheca.getString("id")+
+                        ") \nCategoria: "+
                         bacheca.getString("categoriesdb.nome")+"\n"+
                         "titolo: "+
                                 bacheca.getString("titolo")+"\n"+
@@ -61,28 +63,26 @@ public class EventsDisplayer {
         printer.accept("Inserisci l'ID dell'evento da voler visualizzare: ");
         int eventoDaMostrare = 0;
         try {
-            eventoDaMostrare = scanner.nextInt();
-            ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT eventsdb.id,categoriesdb.nome,titolo,descrizione,citta,via,data,oraInizio,oraFine,prezzo,maxPartecipanti,emailOrganizzatore " +
-                            "FROM `eventsdb` JOIN `categoriesdb`ON categoria = categoriesdb.id " +
-                            "WHERE eventsdb.id = "+eventoDaMostrare
-            );
-            bacheca.next();
+            if(((eventoDaMostrare = scanner.nextInt()) > EventController.getMaxIdEvento())||(eventoDaMostrare < 0)){
+                printer.accept("ERRORE, l'ID inserito non fa parte degli id degli eventi presenti!");
+                return;
+            }
+            ResultSet evento = EventController.getEvento(eventoDaMostrare);
+            evento.next();
 
+            //Scorro i campi dell'evento
             for(int x = 1; x < EventController.campiEvento.length; x++ )
-                printer.accept(EventController.campiEvento[x-1]+": "+bacheca.getString(x));
+                printer.accept(EventController.campiEvento[x-1]+": "+evento.getString(x));
+
         }catch (SQLException e){
             printer.accept(e.getMessage());
             System.exit(-1);
         }
-        boolean queryResult = MySQLConnection.getInstance().selectQuery(
-                "SELECT emailOrganizzatore " +
-                        "FROM `eventsdb` " +
-                        "WHERE id = "+ eventoDaMostrare +
-                        " AND emailOrganizzatore = \""+LoggedUser.getInstance().getEmail()+"\""
-        );
 
-        if(queryResult)
+        //Controllo se l'evento visualizzato è stato pubblicato dall'utente
+        if(EventDysplayerController.visualizzaEvento(
+                eventoDaMostrare,LoggedUser.getInstance().getEmail()
+            ))
             menuEventoOrganizzatore(eventoDaMostrare);
         else
             menuEventoPartecipante(eventoDaMostrare);
@@ -97,14 +97,16 @@ public class EventsDisplayer {
         boolean risultato = false;
         try{
             ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT categoriesdb.nome,titolo,descrizione,citta,data,prezzo " +
+                    "SELECT eventsdb.id, categoriesdb.nome,titolo,descrizione,citta,data,prezzo " +
                             "FROM `eventsdb` JOIN `categoriesdb` ON categoria = categoriesdb.id " +
                             "WHERE emailOrganizzatore = \""+LoggedUser.getInstance().getEmail()+"\""
             );
             while (bacheca.next()) {
                 risultato = true;
                 printer.accept(
-                        "\nCategoria: "+
+                        "\nID evento: "+
+                        bacheca.getString("eventsdb.id")+"\n"+
+                        "Categoria: "+
                         bacheca.getString("categoriesdb.nome")+"\n"+
                         "titolo: "+
                         bacheca.getString("titolo")+"\n"+
@@ -135,7 +137,7 @@ public class EventsDisplayer {
         boolean risultato = false;
         try{
             ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT categoriesdb.nome,titolo,descrizione,citta,data,prezzo \n" +
+                    "SELECT eventsdb.id,categoriesdb.nome,titolo,descrizione,citta,data,prezzo \n" +
                             "FROM `eventsdb` \n" +
                             "JOIN `categoriesdb` ON categoria = categoriesdb.id \n" +
                             "JOIN `partecipantsdb` ON idEvento = eventsdb.id\n" +
@@ -145,7 +147,9 @@ public class EventsDisplayer {
             while (bacheca.next()) {
                 risultato = true;
                 printer.accept(
-                        "\nCategoria: "+
+                        "\nID evento: "+
+                                bacheca.getString("eventsdb.id")+"\n"+
+                                "Categoria: "+
                                 bacheca.getString("categoriesdb.nome")+"\n"+
                                 "titolo: "+
                                 bacheca.getString("titolo")+"\n"+
@@ -171,12 +175,13 @@ public class EventsDisplayer {
 
     /**
      * Mostra il menù in caso in cui un utente non sia l'organizzatore
-     * @param idEvento
+     *
+     * @param idEvento ID dell'evento nel quale si sta navigando
      */
     private static void menuEventoPartecipante(final int idEvento){
         boolean partecipa;
 
-        printer.accept("\n0) Esci");
+        printer.accept("\n\n0) Esci");
         if(partecipa = EventController.getPartecipazione(LoggedUser.getInstance().getEmail(),idEvento))
             printer.accept("1) Annulla partecipazione");
         else
@@ -184,31 +189,33 @@ public class EventsDisplayer {
 
         printer.accept("Inserisci la tua scelta: ");
 
-        switch (SoftwareManager.getString()) {
+        switch (getString()) {
             case "0":
                 return;
 
             case "1":
                 SoftwareManager.clearScreen();
                 if(partecipa)
-                    EventsManager.getInstance().partecipaEvento(idEvento);
-                else
                     EventsManager.getInstance().annullaPartecipazione(idEvento);
+                else
+                    EventsManager.getInstance().partecipaEvento(idEvento);
                 break;
         }
     }
 
+
     /**
      * Mostra il menù in caso in cui l'utente sia l'organizzatore dell'evento
      *
-     * @param idEvento
+     * @param idEvento ID dell'evento nel quale si sta navigando
      */
     private  static void menuEventoOrganizzatore(final int idEvento){
-        printer.accept("0) Esci\n" +
+        printer.accept("\n0) Esci\n" +
                 "1) Modifica evento\n" +
-                "2) Annulla evento\n"
+                "2) Annulla evento\n"+
+                "Inserisci la tua scelta: "
         );
-        switch (SoftwareManager.getString()){
+        switch (getString()){
             case "0":return;
             case "1":
                 SoftwareManager.clearScreen();

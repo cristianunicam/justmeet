@@ -2,7 +2,7 @@ package com.rv.justmeet.main.user;
 
 import com.rv.justmeet.exceptions.LoggedUserDoesNotExistsException;
 
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
+import static com.rv.justmeet.utility.iOUtility.printer;
 
 /**
  * Classe contente i dati a seguito di una connessione dell'utente al database

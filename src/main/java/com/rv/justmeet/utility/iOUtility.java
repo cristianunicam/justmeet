@@ -2,16 +2,20 @@ package com.rv.justmeet.utility;
 
 import com.rv.justmeet.exceptions.*;
 import com.rv.justmeet.main.core.MySQLConnection;
-import com.rv.justmeet.main.core.SoftwareManager;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Scanner;
+import java.util.function.Consumer;
 
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
-import static com.rv.justmeet.main.core.SoftwareManager.scanner;
+public class iOUtility {
+    public static Consumer<String> printer = System.out::println;
+    public static BufferedReader stringReader = new BufferedReader(new InputStreamReader(System.in));
+    public static Scanner scanner = new Scanner(System.in);
 
-public final class iOUtility {
 
     /**
      * Metodo di utility per la scelta della categoria dellìevento che l'utente sta creando
@@ -19,7 +23,6 @@ public final class iOUtility {
      * @return l'id della categoria
      */
     public static int inserisciCategoriaEvento() {
-        printer.accept("Inserisci la categoria dell'evento da voler aggiungere: \n");
         int indiceScelta;
         try {
             ResultSet categorie = MySQLConnection.getInstance().selectQueryReturnSet("SELECT nome FROM `categoriesdb`");
@@ -31,6 +34,8 @@ public final class iOUtility {
                         cont+") "+categorie.getString("nome")
                 );
             }
+            printer.accept("Inserisci la categoria dell'evento da voler aggiungere: \n");
+
             if((indiceScelta = scanner.nextInt()) > cont)
                 throw new WrongCategoryException();
         }catch (SQLException | WrongCategoryException e){
@@ -49,10 +54,10 @@ public final class iOUtility {
      * @return la stringa inserita
      */
     public static String inserisciStringa(String campo , int min , int max) {
-        printer.accept("Inserisci la "+campo+" dell'evento da voler aggiungere: ");
+        printer.accept("Inserisci "+campo+" dell'evento da voler aggiungere: ");
         final String inserted;
         try {
-            inserted = SoftwareManager.getString();
+            inserted = getString();
             if ((inserted.length() < min)||(inserted.length() > max))
                 throw new WrongCharactersNumber(min,max);
         }catch (WrongCharactersNumber e){
@@ -72,7 +77,7 @@ public final class iOUtility {
         printer.accept(richiestaCampo);
         final String data;
         try{
-            data = SoftwareManager.getString();
+            data = getString();
             if((data.length() != 10) || (data.charAt(4) != '-') || (data.charAt(7) != '-')){
                 throw new WrongDataException();
             }
@@ -93,7 +98,7 @@ public final class iOUtility {
         printer.accept("Inserire ora " + tipo + ": ");
         final String ora;
         try {
-            ora = SoftwareManager.getString();
+            ora = getString();
             if ((ora.length() != 5) || (ora.charAt(2) != ':')) {
                 throw new WrongTimeException();
             }
@@ -145,5 +150,19 @@ public final class iOUtility {
             return inserisciInt(tipo,min,max,tipoEccezione);
         }
         return toInsert;
+    }
+
+    /**
+     * Metodo per effettuare l'inserimento e controllare se lancia eccezioni
+     *
+     * @return String testo inserito
+     */
+    public static String getString(){
+        try{
+            return stringReader.readLine();
+        }catch (IOException e) {
+            printer.accept(e.getMessage());
+            return getString();
+        }
     }
 }

@@ -3,12 +3,12 @@ package com.rv.justmeet.main.core;
 import com.rv.justmeet.exceptions.MySQLConnectionIntstanceDoesNotExistsException;
 import java.sql.*;
 
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
+import static com.rv.justmeet.utility.iOUtility.printer;
 
 /**
  * Classe per la connessione e gestione del database
  *
- * @author Lorenzo Romagno, Cristian Verdecchia
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
 public class MySQLConnection {
     private static Connection _conn = null;
@@ -93,14 +93,12 @@ public class MySQLConnection {
      */
     public Boolean selectQuery(String toSelect) {
         try {
-            ResultSet result = myStatement.executeQuery(toSelect);
-            if(!result.next())
-                return false;
+            return myStatement.executeQuery(toSelect).next();
         }catch (SQLException e){
-            System.out.println("ERRORE QUERY SELECT!");
+            System.out.println(e.getMessage());
             System.exit(-1);
         }
-        return true;
+        return null;
     }
 
     /**
@@ -110,14 +108,13 @@ public class MySQLConnection {
      * @return ResultSet dati corrispondenti al risultato della query
      */
     public ResultSet selectQueryReturnSet(String toSelect){
-        ResultSet result = null;
         try {
-            result = myStatement.executeQuery(toSelect);
+            return myStatement.executeQuery(toSelect);
         }catch (SQLException e){
-            System.out.println("ERRORE QUERY SELECT!");
+            System.out.println(e.getMessage());
             System.exit(-1);
         }
-        return result;
+        return null;
     }
 
 }

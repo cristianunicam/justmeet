@@ -3,18 +3,17 @@ package com.rv.justmeet.main.controller;
 import com.rv.justmeet.exceptions.EventApplyException;
 import com.rv.justmeet.exceptions.MaxPartecipantsException;
 import com.rv.justmeet.main.core.MySQLConnection;
-import com.rv.justmeet.main.event.EventsDisplayer;
 import com.rv.justmeet.main.event.EventsManager;
 import com.rv.justmeet.main.user.LoggedUser;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.rv.justmeet.main.core.SoftwareManager.printer;
+import static com.rv.justmeet.utility.iOUtility.printer;
 
 public abstract class EventController {
     public static final String[] campiEvento = {
-            "ID evento","Categoria","Titolo","Descrizione","Citta'","Via","Data","Ora inizio","Ora fine","Prezzo","Numero massimo partecipanti","Email organizzatore"
+            "Categoria","Titolo","Descrizione","Citta'","Via","Data","Ora inizio","Ora fine","Prezzo","Numero massimo partecipanti","Email organizzatore"
     };
     public static final String[] campiEventoModificabili = {
             "Titolo","Descrizione","Citta'","Via","Data","Ora inizio","Ora fine","Prezzo","Numero massimo partecipanti"
@@ -23,24 +22,37 @@ public abstract class EventController {
             "titolo","descrizione","citta","via","data","oraInizio","oraFine","prezzo","maxPartecipanti"
     };
 
+
     /**
      * Metodo che esegue la query per l'agginta di un evento nel database
+     * @param categoria categoria dell'evento da voler aggiungere
+     * @param titolo titolo dell'evento da voler aggiungere
+     * @param descrizione descrizione dell'evento da voler aggiungere
+     * @param citta citta dell'evento da voler aggiungere
+     * @param via via dell'evento da voler aggiungere
+     * @param data data dell'evento da voler aggiungere
+     * @param oraInizio Ora di inizio dell'evento da voler aggiungere
+     * @param oraFine Ora di fine dell'evento da voler aggiungere
+     * @param prezzo prezzo dell'evento da voler aggiungere
+     * @param maxPartecipanti numero massimo di partecipanti all'evento da voler aggiungere
+     * @param email email dell'organizzatore dell'evento da voler aggiungere
      */
     public static void aggiungiEvento(
             final int categoria,final String titolo,final String descrizione,final String citta,final String via,final String data,
             final String oraInizio,final String oraFine,final float prezzo,final int maxPartecipanti,String email
     ){
-
         MySQLConnection.getInstance().insertQuery(
                 "INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `maxPartecipanti`, `emailOrganizzatore`) " +
                         "VALUES (NULL, '"+categoria+"', '"+titolo+"', '"+descrizione+"', '"+citta+"', '"+via+"', '"+data+"', '"+oraInizio+"', '"+oraFine+"', '"+prezzo+"', '"+maxPartecipanti+"', '"+ email+"');");
     }
 
+
     /**
      * Metodo per eseguire la query per la partecipazione di un utente ad un evento
      *
      * @param eventoScelto id evento al quale si vuole partecipare
-     * @return
+     * @return <code>true</code> se la partecipazione è stata registrata,
+     *         <code>false</code> se si è raggiunto il limite massimo di partecipanti
      */
     public static boolean partecipaEvento(final int eventoScelto){
         try {
@@ -61,7 +73,6 @@ public abstract class EventController {
                         "SELECT userdb.email,eventsdb.id\n" +
                         "FROM userdb,eventsdb\n" +
                         "WHERE userdb.email = \""+ LoggedUser.getInstance().getEmail() +"\" AND eventsdb.id = "+eventoScelto);
-
         return true;
     }
 
@@ -112,6 +123,9 @@ public abstract class EventController {
 
     /**
      * Metodo per annullare la partecipazione di un utente ad un evento
+     *
+     * @param idEvento id dell'evento del quale si vuole annullare la partecipazione
+     * @return <code>true</code> se l'annullamento è avvenuto, <code>false</code> altrimenti
      */
     public static boolean annullaPartecipazione(final int idEvento) {
         return MySQLConnection.getInstance().insertQuery(
@@ -122,6 +136,13 @@ public abstract class EventController {
     }
 
 
+    /**
+     * Metodo per la modifica di un campo dell'evento
+     *
+     * @param nomeCampo nome del campo da voler modificare
+     * @param campoModificato campo modificato da voler cambiare all'interno del database
+     * @param idEvento id dell'evento del quale si vuole modificare il campo
+     */
     public static void modificaEvento(final String nomeCampo , final String campoModificato , final int idEvento){
         MySQLConnection.getInstance().insertQuery(
                 "UPDATE `eventsdb` \n" +
@@ -132,8 +153,12 @@ public abstract class EventController {
         printer.accept("L'evento è stato modificato!");
     }
 
+
     /**
      * Metodo per annullare un evento
+     *
+     * @param emailUtente email dell'utente che vuole annullare l'evento
+     * @param idEvento id dell'evento che si vuole annullare
      */
     public static void annullaEvento(final String emailUtente, final int idEvento){
         MySQLConnection.getInstance().insertQuery(
@@ -144,28 +169,60 @@ public abstract class EventController {
         MySQLConnection.getInstance().insertQuery(
                 "DELETE FROM eventsdb "+
                         "WHERE emailOrganizzatore = \""+emailUtente+"\""+
-                        "AND id = "+idEvento
+                        " AND id = "+idEvento
         );
 
-        MySQLConnection.getInstance().insertQuery(
-                "SET  @num := 0 " +
-                        "UPDATE eventsdb SET id = @num := (@num+1) " +
-                        "ALTER TABLE eventsdb AUTO_INCREMENT =1"
+        MySQLConnection.getInstance().insertQuery("SET @num := 0; ");
+        MySQLConnection.getInstance().insertQuery("UPDATE eventsdb SET id = @num := (@num+1);");
+        MySQLConnection.getInstance().insertQuery("ALTER TABLE eventsdb AUTO_INCREMENT = 1");
+    }
+
+
+    /**
+     * Metodo per vedere se l'utente partecipa all'evento
+     *
+     * @param emailUtente dell'utente del quale si vuole controllare la partecipazione
+     * @param idEvento dell'evento del quale si vuole controllare se l'utente è un partecipante
+     * @return <code>true</code> se l'utente partecipa all'evento, <code>false</code> altrimenti
+     */
+    public static boolean getPartecipazione(final String emailUtente, final int idEvento){
+        return MySQLConnection.getInstance().selectQuery(
+                "SELECT *" +
+                        " FROM partecipantsdb" +
+                        " WHERE idEvento = " + idEvento +
+                        " AND emailUtente = \"" + emailUtente + "\""
         );
     }
 
 
-    public static boolean getPartecipazione(final String emailUtente, final int idEvento){
+    /**
+     * Metodo per ottenere i dati di un evento dal database
+     *
+     * @param idEventoDaMostrare id dell'evento del quale ottenere i dati
+     * @return Set di dati relativi all'evento
+     */
+    public static ResultSet getEvento(final int idEventoDaMostrare){
+       return MySQLConnection.getInstance().selectQueryReturnSet(
+                "SELECT categoriesdb.nome,titolo,descrizione,citta,via,data,oraInizio,oraFine,prezzo,maxPartecipanti,emailOrganizzatore " +
+                        "FROM `eventsdb` JOIN `categoriesdb`ON categoria = categoriesdb.id " +
+                        "WHERE eventsdb.id = "+idEventoDaMostrare
+        );
+    }
+
+
+    public static int getMaxIdEvento(){
+        ResultSet evento = MySQLConnection.getInstance().selectQueryReturnSet(
+                "SELECT MAX(id) " +
+                        "FROM eventsdb"
+        );
+
         try {
-            return MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT *" +
-                            " FROM partecipantsdb" +
-                            " WHERE idEvento = " + idEvento +
-                            "AND emailUtente = \"" + emailUtente + "\""
-            ).next();
+            evento.next();
+            return evento.getInt("id");
         }catch (SQLException e){
             printer.accept(e.getMessage());
-            return false;
+            System.exit(-1);
         }
+        return 0;
     }
 }

@@ -5,11 +5,10 @@ import com.rv.justmeet.main.event.EventsManager;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserManager;
 
-import java.io.BufferedReader;
+import static com.rv.justmeet.utility.iOUtility.getString;
+import static com.rv.justmeet.utility.iOUtility.printer;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Scanner;
-import java.util.function.Consumer;
 
 /**
  * Classe per la gestione dell'applicativo
@@ -17,9 +16,16 @@ import java.util.function.Consumer;
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
 public class SoftwareManager {
-    public static Consumer<String> printer = System.out::println;
-    public static BufferedReader stringReader = new BufferedReader(new InputStreamReader(System.in));
-    public static Scanner scanner = new Scanner(System.in);
+    private static SoftwareManager instance = null;
+
+    private SoftwareManager(){}
+
+    public static SoftwareManager getInstance(){
+        if(instance == null)
+            instance = new SoftwareManager();
+        return instance;
+    }
+
 
     /**
      * Metodo che inizializza la connessione con il database
@@ -134,19 +140,4 @@ public class SoftwareManager {
             System.out.flush();
         }
     }
-
-    /**
-     * Metodo per effettuare l'inserimento e controllare se lancia eccezioni
-     *
-     * @return String testo inserito
-     */
-    public static String getString(){
-        try{
-            return stringReader.readLine();
-        }catch (IOException e) {
-            printer.accept(e.getMessage());
-            return getString();
-        }
-    }
-
 }
