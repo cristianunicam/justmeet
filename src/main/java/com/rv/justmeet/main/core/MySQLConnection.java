@@ -72,14 +72,16 @@ public class MySQLConnection {
      * Effettua query di tipo insert
      *
      * @param toInsert Query da effettuare
+     * @return false se non ci sono risultati della query, true altrimenti
      */
-    public void insertQuery(String toInsert) {
+    public boolean insertQuery(String toInsert) {
         try{
-            myStatement.execute(toInsert);
-        }catch (SQLException e){
+            return myStatement.execute(toInsert);
+        }catch (SQLException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
         }
+        return false;
     }
 
     /**

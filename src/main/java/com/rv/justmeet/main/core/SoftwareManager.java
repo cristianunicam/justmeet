@@ -79,8 +79,9 @@ public class SoftwareManager {
                 "\n0) Logout\n"+"" +
                         "1) Per inserire un nuovo evento\n"+
                         "2) Per visualizzare la bacheca\n"+
-                        "3) Per visualizzare un determinato evento\n"+
-                        "4) Partecipa ad evento\n"+
+                        "3) Per visualizzare un determinato evento o modificarlo\n"+
+                        "4) Per visualizzare la lista degli eventi pubblicati\n"+
+                        "5) Per visualizzare la lista degli eventi ai quali si partecipa\n"+
                         "Inserisci la tua scelta: "
         );
         switch (getString()) {
@@ -103,7 +104,11 @@ public class SoftwareManager {
                 break;
             case "4":
                 clearScreen();
-                EventsManager.getInstance().partecipaEvento();
+                EventsDisplayer.visualizzaEventiPubblicati();
+                break;
+            case "5":
+                clearScreen();
+                EventsDisplayer.visualizzaPartecipazioneEventi();
                 break;
         }
         gestioneBacheca();
@@ -113,7 +118,7 @@ public class SoftwareManager {
     /**
      * "Pulisce" lo schermo in base al tipo di sistema operativo in utilizzo
      */
-    private void clearScreen() {
+    public static void clearScreen() {
         try {
             final String os = System.getProperty("os.name");
             if (os.contains("Windows"))

@@ -1,6 +1,7 @@
 package com.rv.justmeet.main.user;
 
 import com.rv.justmeet.exceptions.*;
+import com.rv.justmeet.main.controller.UserController;
 import com.rv.justmeet.main.core.MySQLConnection;
 import com.rv.justmeet.main.core.SoftwareManager;
 import com.rv.justmeet.main.event.EventsManager;
@@ -41,7 +42,7 @@ public class UserManager {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
         //Utente corrispondente ai dati inseriti presente nel database
-        if(MySQLConnection.getInstance().selectQuery("SELECT * FROM `userdb` WHERE email = '"+datiLogin.getEmail()+"' AND password = '"+datiLogin.getPassword()+"'")){
+        if(UserController.login(datiLogin.getEmail(),datiLogin.getPassword())){
             //Loggo l'utente
             LoggedUser.getInstance(datiLogin.getEmail());
         }else{

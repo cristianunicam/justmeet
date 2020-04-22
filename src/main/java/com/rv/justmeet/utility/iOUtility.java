@@ -12,6 +12,7 @@ import static com.rv.justmeet.main.core.SoftwareManager.printer;
 import static com.rv.justmeet.main.core.SoftwareManager.scanner;
 
 public final class iOUtility {
+
     /**
      * Metodo di utility per la scelta della categoria dellìevento che l'utente sta creando
      *
