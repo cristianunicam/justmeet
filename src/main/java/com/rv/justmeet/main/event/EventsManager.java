@@ -1,5 +1,6 @@
 package com.rv.justmeet.main.event;
 
+import com.rv.justmeet.exceptions.FieldToModifyDoesNotExistsException;
 import com.rv.justmeet.main.controller.EventController;
 import com.rv.justmeet.main.user.LoggedUser;
 import static com.rv.justmeet.utility.iOUtility.*;
@@ -60,7 +61,7 @@ public class EventsManager{
 
         EventController.aggiungiEvento(categoria,titolo,descrizione,citta,via,data,oraInizio,oraFine,prezzo,maxPartecipanti,LoggedUser.getInstance().getEmail());
         printer.accept("Evento inserito!");
-  }
+    }
 
 
     /**
@@ -84,12 +85,14 @@ public class EventsManager{
             printer.accept("Eliminazione non effettuata");
     }
 
+
     /**
      * Metodo per la modifica di un evento
      *
      * @param idEvento id dell'evento che si vuole modificare
      */
     public void modificaEvento(int idEvento){
+        String campoModificato;
         //Mostra tutti i campi modificabili
         printer.accept("0) Per annullare");
         for(int x = 0; x < EventController.campiEventoModificabili.length ; x++)
@@ -98,19 +101,21 @@ public class EventsManager{
         //Richiede l'inserimento del campo da voler modificare
         printer.accept("Inserisci il numero del campo da voler modificare: ");
         int campoDaModificare = scanner.nextInt();
-        if(campoDaModificare == 0) return;
-
-        //Informazioni del campo modificato
-        printer.accept("Inserisci le nuove informazioni del campo: ");
-        String campoModificato;
-
-        if(campoDaModificare < EventController.campiDatabaseModificabili.length+1)
-            campoModificato = "\""+campiEvento.get(EventController.campiDatabaseModificabili[campoDaModificare-1]).get()+"\"";
-        else{
-            printer.accept("Errore nell'inserimento del campo da moficare.");
+        try {
+            if (campoDaModificare == 0)
+                return;
+            else if (campoDaModificare < EventController.campiDatabaseModificabili.length + 1) {
+                //Informazioni del campo modificato
+                printer.accept("Inserisci le nuove informazioni del campo: ");
+                campoModificato = "\"" + campiEvento.get(
+                        EventController.campiDatabaseModificabili[campoDaModificare - 1]
+                ).get() + "\"";
+            } else
+                throw new FieldToModifyDoesNotExistsException();
+        }catch (FieldToModifyDoesNotExistsException e){
+            printer.accept(e.getMessage());
             return;
         }
-
         EventController.modificaEvento(
                 EventController.campiDatabaseModificabili[campoDaModificare-1],
                 campoModificato,

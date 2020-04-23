@@ -2,7 +2,6 @@ package com.rv.justmeet.main.event;
 
 import com.rv.justmeet.main.controller.EventController;
 import com.rv.justmeet.main.controller.EventDysplayerController;
-import com.rv.justmeet.main.core.MySQLConnection;
 import com.rv.justmeet.main.core.SoftwareManager;
 import com.rv.justmeet.main.user.LoggedUser;
 
@@ -19,6 +18,9 @@ import java.sql.SQLException;
  * Classe che fornisce metodi statici per la stampa della bacheca e dei singoli eventi
  */
 public class EventsDisplayer {
+    public static final String[] campiEventoStampabili = {
+            "ID evento","categoria","Titolo","Descrizione","Citta'","Data","Prezzo"
+    };
 
     private EventsDisplayer(){}
 
@@ -26,33 +28,10 @@ public class EventsDisplayer {
      * Stampa la lista degli eventi presenti in bacheca.
      */
     public static void visualizzaBacheca(){
-        boolean risultato = false;
-        try {
-            ResultSet bacheca = EventDysplayerController.visualizzaBacheca();
-
-            while (bacheca.next()) {
-                risultato = true;
-                printer.accept(
-                        bacheca.getString("id")+
-                        ") \nCategoria: "+
-                        bacheca.getString("categoriesdb.nome")+"\n"+
-                        "titolo: "+
-                                bacheca.getString("titolo")+"\n"+
-                        "descrizione: "+
-                                bacheca.getString("descrizione")+"\n"+
-                        "citta: "+
-                                bacheca.getString("citta")+"\n"+
-                        "data: "+
-                                bacheca.getString("data")+"\n"+
-                        "prezzo: "+
-                                bacheca.getString("prezzo")+"\n"
-                );
-            }
-            if(!risultato)
-                printer.accept("Non c'è nessun evento da visualizzare!");
-        }catch (SQLException e){
-            printer.accept(e.getMessage());
-            System.exit(-1);
+        ResultSet bacheca = EventDysplayerController.visualizzaBacheca();
+        if(!printResultSet(bacheca)) {
+            SoftwareManager.clearScreen();
+            printer.accept("Non c'è nessun evento da visualizzare!");
         }
     }
 
@@ -94,37 +73,12 @@ public class EventsDisplayer {
      */
     public static void visualizzaEventiPubblicati(){
         printer.accept("Lista eventi pubblicati: ");
-        boolean risultato = false;
-        try{
-            ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT eventsdb.id, categoriesdb.nome,titolo,descrizione,citta,data,prezzo " +
-                            "FROM `eventsdb` JOIN `categoriesdb` ON categoria = categoriesdb.id " +
-                            "WHERE emailOrganizzatore = \""+LoggedUser.getInstance().getEmail()+"\""
-            );
-            while (bacheca.next()) {
-                risultato = true;
-                printer.accept(
-                        "\nID evento: "+
-                        bacheca.getString("eventsdb.id")+"\n"+
-                        "Categoria: "+
-                        bacheca.getString("categoriesdb.nome")+"\n"+
-                        "titolo: "+
-                        bacheca.getString("titolo")+"\n"+
-                        "descrizione: "+
-                        bacheca.getString("descrizione")+"\n"+
-                        "citta: "+
-                        bacheca.getString("citta")+"\n"+
-                        "data: "+
-                        bacheca.getString("data")+"\n"+
-                        "prezzo: "+
-                        bacheca.getString("prezzo")+"\n"
-                );
-            }
-            if(!risultato)
-                printer.accept("Non hai pubblicato ancora alcun evento!");
-        }catch (SQLException e){
-            printer.accept(e.getMessage());
-            System.exit(-1);
+
+        ResultSet eventiPubblicati = EventDysplayerController.visualizzaEventiPubblicati(LoggedUser.getInstance().getEmail());
+
+        if(!printResultSet(eventiPubblicati)) {
+            SoftwareManager.clearScreen();
+            printer.accept("Non hai pubblicato ancora alcun evento!");
         }
     }
 
@@ -134,41 +88,12 @@ public class EventsDisplayer {
      */
     public static void visualizzaPartecipazioneEventi(){
         printer.accept("Lista eventi ai quali si partecipa: ");
-        boolean risultato = false;
-        try{
-            ResultSet bacheca = MySQLConnection.getInstance().selectQueryReturnSet(
-                    "SELECT eventsdb.id,categoriesdb.nome,titolo,descrizione,citta,data,prezzo \n" +
-                            "FROM `eventsdb` \n" +
-                            "JOIN `categoriesdb` ON categoria = categoriesdb.id \n" +
-                            "JOIN `partecipantsdb` ON idEvento = eventsdb.id\n" +
-                            "WHERE partecipantsdb.emailUtente = \""+LoggedUser.getInstance().getEmail()+"\""
-            );
 
-            while (bacheca.next()) {
-                risultato = true;
-                printer.accept(
-                        "\nID evento: "+
-                                bacheca.getString("eventsdb.id")+"\n"+
-                                "Categoria: "+
-                                bacheca.getString("categoriesdb.nome")+"\n"+
-                                "titolo: "+
-                                bacheca.getString("titolo")+"\n"+
-                                "descrizione: "+
-                                bacheca.getString("descrizione")+"\n"+
-                                "citta: "+
-                                bacheca.getString("citta")+"\n"+
-                                "data: "+
-                                bacheca.getString("data")+"\n"+
-                                "prezzo: "+
-                                bacheca.getString("prezzo")+"\n"
-                );
-            }
-            if(!risultato)
-                printer.accept("Attualmente non partecipi a nessun evento!");
+        ResultSet eventiPartecipi = EventDysplayerController.visualizzaPartecipazioneEventi(LoggedUser.getInstance().getEmail());
 
-        }catch (SQLException e){
-            printer.accept(e.getMessage());
-            System.exit(-1);
+        if(!printResultSet(eventiPartecipi)){
+            SoftwareManager.clearScreen();
+            printer.accept("Attualmente non partecipi a nessun evento!");
         }
     }
 
@@ -180,7 +105,6 @@ public class EventsDisplayer {
      */
     private static void menuEventoPartecipante(final int idEvento){
         boolean partecipa;
-
         printer.accept("\n\n0) Esci");
         if(partecipa = EventController.getPartecipazione(LoggedUser.getInstance().getEmail(),idEvento))
             printer.accept("1) Annulla partecipazione");
@@ -226,5 +150,20 @@ public class EventsDisplayer {
                 EventsManager.getInstance().annullaEvento(idEvento);
                 break;
         }
+    }
+
+    private static boolean printResultSet(ResultSet setEventi) {
+        boolean risultato = false;
+        try {
+            while (setEventi.next()) {
+                risultato = true;
+                for (int x = 0; x < campiEventoStampabili.length; x++)
+                    printer.accept(campiEventoStampabili[x] + ": " + setEventi.getString(x));
+            }
+        }catch (SQLException e){
+            printer.accept(e.getMessage());
+            System.exit(-1);
+        }
+        return risultato;
     }
 }
