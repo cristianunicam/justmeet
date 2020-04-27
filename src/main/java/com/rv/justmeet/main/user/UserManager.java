@@ -1,8 +1,11 @@
 package com.rv.justmeet.main.user;
 
+import com.google.gson.Gson;
 import com.rv.justmeet.exceptions.*;
-import com.rv.justmeet.main.controller.UserController;
-import com.rv.justmeet.main.core.MySQLConnection;
+import com.rv.justmeet.main.parser.Parser;
+import com.rv.justmeet.utility.RequestComunication;
+
+import java.util.HashMap;
 
 import static com.rv.justmeet.utility.iOUtility.*;
 
@@ -13,17 +16,19 @@ import static com.rv.justmeet.utility.iOUtility.*;
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
 public class UserManager {
+    private static final String[] campiUtente = {"email", "password", "nome", "cognome", "eta"};
     private static UserManager instance = null;
 
-    private UserManager(){}
+    private UserManager() {
+    }
 
     /**
      * Metodo che ritorna l'instanza della classe
      *
      * @return Instanza della classe
      */
-    public static UserManager getInstance(){
-        if(instance == null)
+    public static UserManager getInstance() {
+        if (instance == null)
             instance = new UserManager();
         return instance;
     }
@@ -37,10 +42,12 @@ public class UserManager {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
         //Utente corrispondente ai dati inseriti presente nel database
-        if(UserController.login(datiLogin.getEmail(),datiLogin.getPassword())){
+        String response = RequestComunication.getInstance().restSend(getDomain() + "login", "POST",
+                "{ \"email\":\"" + datiLogin.email + "\", \"password\":\"" + datiLogin.password + "\"}");
+        if (Parser.getInstance().parseSuccess(response)) {
             //Loggo l'utente
             LoggedUser.getInstance(datiLogin.getEmail());
-        }else{
+        } else {
             return datiLoginErrati();
         }
         return true;
@@ -48,37 +55,33 @@ public class UserManager {
 
 
     /**
-     * Esegue la registrazione di un nuovo utente salvandolo nel database
-     */
-    public void registra() {
-        MySQLConnection.getInstance().insertQuery(creaQueryRegistrazione());
-        printer.accept("Registrazione effettuata!");
-    }
-
-
-    /**
      * Permettere all'utente di inserire i suoi dati per effettuare
      * la registrazione
-     *
-     * @return String contenente la query da effettuare
      */
-    private String creaQueryRegistrazione() {
-            final String email = inserimentoEmailRegistrazione();
-            final String password = inserisciStringa("password", 8,30);
-            final String nome = inserisciStringa("nome",3,30);
-            final String cognome = inserisciStringa("cognome",30,30);
-            final int eta = inserisciInt("eta",14,105,"l'eta' deve essere maggiore di 14 anni");
-            printer.accept("I dati inseriti sono corretti? Effettuare la registrazione? (S/N)");
-            String scelta;
-            while(!(scelta = getString().toUpperCase()).equals("S")) {
-                if ("N".equals(scelta)) {
-                    printer.accept("Registrazione non effettuata!");
-                    return null;
-                } else
-                    printer.accept("Risposta non accettata! Riprovare!");
-            }
-            return "INSERT INTO `userdb` (email,password,nome,cognome,eta) "+
-                    "VALUES (\""+email+"\",\""+password+"\",\""+nome+"\",\""+cognome+"\","+eta+")";
+    public void registra() {
+        HashMap<String, String> json = new HashMap<>();
+        json.put(campiUtente[0], inserimentoEmailRegistrazione());
+        json.put(campiUtente[1], inserisciStringa("password", 8, 30));
+        json.put(campiUtente[2], inserisciStringa("nome", 3, 30));
+        json.put(campiUtente[3], inserisciStringa("cognome", 3, 30));
+        json.put(campiUtente[4], Integer.toString(inserisciInt("eta", 14, 105, "l'eta' deve essere maggiore di 14 anni")));
+
+        printer.accept("I dati inseriti sono corretti? Effettuare la registrazione? (S/N)");
+        String scelta;
+        while (!(scelta = getString().toUpperCase()).equals("S")) {
+            if ("N".equals(scelta)) {
+                printer.accept("Registrazione non effettuata!");
+                return;
+            } else
+                printer.accept("Risposta non accettata! Riprovare!");
+        }
+        Gson gson = new Gson();
+        String response = RequestComunication.getInstance().restSend(getDomain() + "registrazione", "POST", gson.toJson(json));
+        if (Parser.getInstance().parseSuccess(response))
+            printer.accept("Registrazione effettuata!");
+        else
+            printer.accept("Registrazione non effettuata!");
+
     }
 
 
@@ -93,11 +96,12 @@ public class UserManager {
         try {
             if (!email.contains("@"))
                 throw new WrongMailException();
-            else if(MySQLConnection.getInstance().selectQuery(
-                    "SELECT * FROM `userdb` WHERE email = '"+email+"'"
-            ))
-                throw new AlreadyExistingUser();
-        }catch (WrongMailException | AlreadyExistingUser e){
+            else {
+                String response = RequestComunication.getInstance().restRequest(getDomain() + "controlloemail/" + email, "GET");
+                if (Parser.getInstance().parseSuccess(response))
+                    throw new AlreadyExistingUser();
+            }
+        } catch (WrongMailException | AlreadyExistingUser e) {
             printer.accept(e.getMessage());
             return inserimentoEmailRegistrazione();
         }
@@ -110,7 +114,7 @@ public class UserManager {
      *
      * @return LoginData contenente email e password dell'utente
      */
-    private LoginData inserimentoDatiLogin(){
+    private LoginData inserimentoDatiLogin() {
         printer.accept("Inserire email: ");
         final String email = getString();
         printer.accept("Inserire password: ");
@@ -123,10 +127,10 @@ public class UserManager {
      * In caso di dati di login errati, viene richiesto all'utente
      * di reinserirli, se l'utente accetta viene eseguito nuovamente il login
      **/
-    private boolean datiLoginErrati(){
+    private boolean datiLoginErrati() {
         String scelta;
         printer.accept("Dati d'accesso errati, riprovare? (S/N)");
-        while(!(scelta = getString().toUpperCase()).equals("N")) {
+        while (!(scelta = getString().toUpperCase()).equals("N")) {
             if ("S".equals(scelta)) {
                 login();
                 return true;
@@ -137,6 +141,10 @@ public class UserManager {
         return false;
     }
 
+    private String getDomain() {
+        return "/utente/";
+    }
+
 
     /**
      * Inner class contenente i dati di login di un utente
@@ -144,15 +152,19 @@ public class UserManager {
     static final class LoginData {
         private final String email;
         private final String password;
+
         public LoginData(String email, String password) {
             this.email = email;
             this.password = password;
         }
+
         public String getEmail() {
             return email;
         }
+
         public String getPassword() {
             return password;
         }
     }
+
 }

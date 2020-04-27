@@ -1,13 +1,12 @@
 package com.rv.justmeet.utility;
 
 import com.rv.justmeet.exceptions.*;
-import com.rv.justmeet.main.core.MySQLConnection;
+import com.rv.justmeet.main.parser.EventParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
@@ -25,20 +24,16 @@ public class iOUtility {
     public static int inserisciCategoriaEvento() {
         int indiceScelta;
         try {
-            ResultSet categorie = MySQLConnection.getInstance().selectQueryReturnSet("SELECT nome FROM `categoriesdb`");
-            int cont = 0;
+            String response = RequestComunication.getInstance().restRequest("/eventi/getcategorie", "GET");
+            List<String> categorie = EventParser.getInstance().parseCategorie(response);
 
-            while (categorie.next()) {
-                cont++;
-                printer.accept(
-                        cont+") "+categorie.getString("nome")
-                );
-            }
+            for (int x = 0; x < categorie.size(); x++)
+                printer.accept((x + 1) + ") " + categorie.get(x));
             printer.accept("Inserisci la categoria dell'evento da voler aggiungere: \n");
 
-            if((indiceScelta = scanner.nextInt()) > cont)
+            if ((indiceScelta = scanner.nextInt()) > categorie.size())
                 throw new WrongCategoryException();
-        }catch (SQLException | WrongCategoryException e){
+        } catch (WrongCategoryException e) {
             printer.accept(e.getMessage());
             return inserisciCategoriaEvento();
         }
@@ -49,20 +44,20 @@ public class iOUtility {
      * Metodo di utility per l'inserimento di una stringa da parte dell'utente
      *
      * @param campo , nome del campo da inserire
-     * @param min , lunghezza minima della stringa
-     * @param max, lunghezza massima della stringa
+     * @param min   , lunghezza minima della stringa
+     * @param max,  lunghezza massima della stringa
      * @return la stringa inserita
      */
-    public static String inserisciStringa(String campo , int min , int max) {
-        printer.accept("Inserisci "+campo+" dell'evento da voler aggiungere: ");
+    public static String inserisciStringa(String campo, int min, int max) {
+        printer.accept("Inserisci " + campo + ": ");
         final String inserted;
         try {
             inserted = getString();
-            if ((inserted.length() < min)||(inserted.length() > max))
-                throw new WrongCharactersNumber(min,max);
-        }catch (WrongCharactersNumber e){
+            if ((inserted.length() < min) || (inserted.length() > max))
+                throw new WrongCharactersNumber(min, max);
+        } catch (WrongCharactersNumber e) {
             printer.accept(e.getMessage());
-            return inserisciStringa(campo , min , max);
+            return inserisciStringa(campo, min, max);
         }
         return inserted;
     }
@@ -73,15 +68,15 @@ public class iOUtility {
      * @param richiestaCampo, messaggio contestuale che verrà stampato prima di chiedere l'inserimento della data
      * @return la data inserita dall'utente sotto forma di stringa
      */
-    public static String inserisciData(String richiestaCampo){
+    public static String inserisciData(String richiestaCampo) {
         printer.accept(richiestaCampo);
         final String data;
-        try{
+        try {
             data = getString();
-            if((data.length() != 10) || (data.charAt(4) != '-') || (data.charAt(7) != '-')){
+            if ((data.length() != 10) || (data.charAt(4) != '-') || (data.charAt(7) != '-')) {
                 throw new WrongDataException();
             }
-        }catch(WrongDataException e){
+        } catch (WrongDataException e) {
             printer.accept(e.getMessage());
             return inserisciData(richiestaCampo);
         }
@@ -106,7 +101,7 @@ public class iOUtility {
             printer.accept(e.getMessage());
             return inserisciOra(tipo);
         }
-        return ora+":00";
+        return ora + ":00";
     }
 
     /**
@@ -115,15 +110,15 @@ public class iOUtility {
      * @param tipo, messaggio contestuale relativo al tipo di dato che si chiede di inserire
      * @return il numero inserito
      */
-    public static float inserisciFloat(String tipo){
-        printer.accept("Inserisci "+tipo+": ");
+    public static float inserisciFloat(String tipo) {
+        printer.accept("Inserisci " + tipo + ": ");
         final float toInsert;
-        try{
+        try {
             toInsert = scanner.nextFloat();
-            if(toInsert < 0){
+            if (toInsert < 0) {
                 throw new IOException();
             }
-        }catch(IOException e){
+        } catch (IOException e) {
             printer.accept("Il numero deve essere positivo! Riprova");
             return inserisciFloat(tipo);
         }
@@ -133,21 +128,21 @@ public class iOUtility {
     /**
      * Metodo di utlity per l'inserimento di un numero intero da parte dell'utente
      *
-     * @param tipo ,messaggio contestuale relativo al tipo di dato che si chiede di inserire
-     * @param min , grandezza minima del numero
-     * @param max , grandezza massima del numero
+     * @param tipo           ,messaggio contestuale relativo al tipo di dato che si chiede di inserire
+     * @param min            , grandezza minima del numero
+     * @param max            , grandezza massima del numero
      * @param tipoEccezione, messaggio da stampare in caso di violazione dei parametri.Dipende dal tipo di dato che deve essere inserito
      * @return il numero inserito
      */
-    public static int inserisciInt(String tipo , int min , int max , String tipoEccezione){
-        printer.accept("Inserire "+tipo+": ");
+    public static int inserisciInt(String tipo, int min, int max, String tipoEccezione) {
+        printer.accept("Inserire " + tipo + ": ");
         final int toInsert = scanner.nextInt();
-        try{
-            if((toInsert < min) || (toInsert > max))
+        try {
+            if ((toInsert < min) || (toInsert > max))
                 throw new WrongEtaException(tipoEccezione);
-        }catch (WrongEtaException e){
+        } catch (WrongEtaException e) {
             printer.accept(e.getMessage());
-            return inserisciInt(tipo,min,max,tipoEccezione);
+            return inserisciInt(tipo, min, max, tipoEccezione);
         }
         return toInsert;
     }
@@ -157,10 +152,10 @@ public class iOUtility {
      *
      * @return String testo inserito
      */
-    public static String getString(){
-        try{
+    public static String getString() {
+        try {
             return stringReader.readLine();
-        }catch (IOException e) {
+        } catch (IOException e) {
             printer.accept(e.getMessage());
             return getString();
         }

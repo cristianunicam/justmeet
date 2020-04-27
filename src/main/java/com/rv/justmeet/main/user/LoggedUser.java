@@ -13,7 +13,7 @@ public class LoggedUser {
     private static LoggedUser instance = null;
     private final String email;
 
-    private LoggedUser(String email){
+    private LoggedUser(String email) {
         this.email = email;
     }
 
@@ -23,7 +23,7 @@ public class LoggedUser {
      * @param email email dell'utente che si è loggato
      * @return Instanza della classe
      */
-    public static LoggedUser getInstance(String email){
+    public static LoggedUser getInstance(String email) {
         if (instance == null)
             instance = new LoggedUser(email);
         return instance;
@@ -38,22 +38,22 @@ public class LoggedUser {
         try {
             if (instance == null)
                 throw new LoggedUserDoesNotExistsException();
-        }catch (LoggedUserDoesNotExistsException e){
+        } catch (LoggedUserDoesNotExistsException e) {
             printer.accept(e.getMessage());
             System.exit(-1);
         }
         return instance;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
     /**
      * Scollega l'utente cancellando l'instanza di questa classe
      */
-    public static void logout(){
+    public static void logout() {
         instance = null;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
 }
