@@ -137,4 +137,14 @@ public class UserRepository {
                         " AND emailUtente = '" + emailUtente + "'"
         ) == 1;
     }
+
+    /**
+     * Metodo utilizzato dopo l'esecuzione dei test da parte del frontend.
+     * Permette di eliminare l'untente di test creato durante l'esecuzione dei vari test.
+     *
+     * @return true se l'utente è stato eliminato, false altrimenti
+     */
+    public boolean eliminaTest(JdbcTemplate jdbcTemplate){
+        return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test@unicam.it'") == 1;
+    }
 }

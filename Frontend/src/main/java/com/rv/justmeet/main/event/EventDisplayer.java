@@ -1,16 +1,17 @@
 package com.rv.justmeet.main.event;
 
+import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.core.SoftwareManager;
 import com.rv.justmeet.main.parser.EventParser;
 import com.rv.justmeet.main.parser.Parser;
 import com.rv.justmeet.main.user.LoggedUser;
-import com.rv.justmeet.utility.RequestComunication;
+import com.rv.justmeet.main.user.UserManager;
 
 import java.util.List;
 
-import static com.rv.justmeet.utility.iOUtility.*;
+import static com.rv.justmeet.utility.IOUtility.*;
 
-public class EventsDisplayer {
+public class EventDisplayer {
     public static final String[] campiEventoBacheca = {
             "ID evento", "categoria", "Titolo", "Descrizione", "Citta'", "Data", "Prezzo"
     };
@@ -23,13 +24,15 @@ public class EventsDisplayer {
      * Stampa la lista degli eventi presenti in bacheca.
      */
     public static void visualizzaBacheca() {
-        String response = RequestComunication.getInstance().restRequest(getDomain() + "geteventi", "GET");
+        String response = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "geteventi", "GET",null
+        );
         if (response.isEmpty()) {
             SoftwareManager.clearScreen();
             printer.accept("Non c'è nessun evento da visualizzare!");
             return;
         }
-        printBacheca(
+        stampaBacheca(
                 EventParser.getInstance().parseBacheca(response)
         );
     }
@@ -45,8 +48,8 @@ public class EventsDisplayer {
             return;
         }
 
-        String response = RequestComunication.getInstance().restRequest(
-                getDomain() + "getevento/" + eventoDaMostrare, "GET"
+        String response = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "getevento/" + eventoDaMostrare, "GET",null
         );
 
         if (Parser.getInstance().parseJsonResponse(response, "false")) {
@@ -54,10 +57,11 @@ public class EventsDisplayer {
             return;
         }
         List<String> evento = EventParser.getInstance().parseEvento(response);
-        printEvento(evento);
+        stampaEvento(evento);
         //Controllo se l'evento visualizzato è stato pubblicato dall'utente
-        String checkorganizzatore = RequestComunication.getInstance().restRequest(
-                getDomain() + "isorganizzatore/" + LoggedUser.getInstance().getEmail() + ":" + eventoDaMostrare, "GET");
+        String checkorganizzatore = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "isorganizzatore/" + LoggedUser.getInstance().getEmail() + ":" + eventoDaMostrare, "GET",null
+        );
         if (Parser.getInstance().parseSuccess(checkorganizzatore))
             menuEventoOrganizzatore(eventoDaMostrare);
         else
@@ -69,8 +73,9 @@ public class EventsDisplayer {
      */
     public static void visualizzaEventiPubblicati() {
         printer.accept("Lista eventi pubblicati: ");
-        String response = RequestComunication.getInstance().restRequest(
-                getDomain() + "geteventipubblicati/" + LoggedUser.getInstance().getEmail(), "GET");
+        String response = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "geteventipubblicati/" + LoggedUser.getInstance().getEmail(), "GET",null
+        );
 
         if (response.isEmpty()) {
             SoftwareManager.clearScreen();
@@ -79,7 +84,7 @@ public class EventsDisplayer {
         }
 
         List<String> eventiPubblicati = EventParser.getInstance().parseBacheca(response);
-        printBacheca(eventiPubblicati);
+        stampaBacheca(eventiPubblicati);
     }
 
     /**
@@ -87,8 +92,8 @@ public class EventsDisplayer {
      */
     public static void visualizzaPartecipazioneEventi() {
         printer.accept("Lista eventi ai quali si partecipa: ");
-        String response = RequestComunication.getInstance().restRequest(
-                getDomain() + "geteventipartecipante/" + LoggedUser.getInstance().getEmail(), "GET"
+        String response = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "geteventipartecipante/" + LoggedUser.getInstance().getEmail(), "GET",null
         );
         if (response.isEmpty()) {
             SoftwareManager.clearScreen();
@@ -97,7 +102,7 @@ public class EventsDisplayer {
         }
 
         List<String> eventiPartecipi = EventParser.getInstance().parseBacheca(response);
-        printBacheca(eventiPartecipi);
+        stampaBacheca(eventiPartecipi);
     }
 
     /**
@@ -107,8 +112,8 @@ public class EventsDisplayer {
      */
     private static void menuEventoPartecipante(final int idEvento) {
         printer.accept("\n\n0) Esci");
-        String checkpartecipa = RequestComunication.getInstance().restRequest(
-                getDomain() + "ispartecipante/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET"
+        String checkpartecipa = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "ispartecipante/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET", null
         );
         boolean partecipa = Parser.getInstance().parseSuccess(checkpartecipa);
         if (partecipa)
@@ -125,9 +130,9 @@ public class EventsDisplayer {
             case "1":
                 SoftwareManager.clearScreen();
                 if (partecipa)
-                    EventsManager.getInstance().annullaPartecipazione(idEvento);
+                    UserManager.getInstance().annullaPartecipazione(idEvento);
                 else
-                    EventsManager.getInstance().partecipaEvento(idEvento);
+                    UserManager.getInstance().partecipaEvento(idEvento);
                 break;
         }
     }
@@ -149,17 +154,21 @@ public class EventsDisplayer {
                 return;
             case "1":
                 SoftwareManager.clearScreen();
-                EventsManager.getInstance().modificaEvento(idEvento);
+                EventManager.getInstance().modificaEvento(idEvento);
                 break;
             case "2":
                 SoftwareManager.clearScreen();
-                EventsManager.getInstance().annullaEvento(idEvento);
+                EventManager.getInstance().annullaEvento(idEvento);
                 break;
         }
     }
 
-
-    private static void printBacheca(List<String> eventi) {
+    /**
+     * Stampa la bacheca
+     *
+     * @param eventi eventi all'interno della bacheca
+     */
+    private static void stampaBacheca(List<String> eventi) {
         int y = 0;
         for (int z = 0; z < eventi.size() / campiEventoBacheca.length; z++) {
             for (String s : campiEventoBacheca) {
@@ -170,12 +179,21 @@ public class EventsDisplayer {
         }
     }
 
-
-    private static void printEvento(List<String> evento) {
+    /**
+     * Stampa i campi dell'evento
+     *
+     * @param evento lista contente tutti i campi di un evento
+     */
+    private static void stampaEvento(List<String> evento) {
         for (int x = 0; x < campiEvento.length; x++)
             printer.accept(campiEvento[x] + ": " + evento.get(x));
     }
 
+    /**
+     * Ritorna l'indirizzo che contiene le richieste che verranno effettuate da questa classe
+     *
+     * @return String contente il path
+     */
     private static String getDomain() {
         return "/eventi/";
     }

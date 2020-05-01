@@ -27,7 +27,7 @@ public class EventController {
 
     @RequestMapping(path="/inserimento", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.CREATED)
-    public Map<String, Boolean> registrazione(@RequestBody EventRepository evento){
+    public Map<String, Boolean> pubblicaEvento(@RequestBody EventRepository evento){
         return Collections.singletonMap("success",evento.inserimento(jdbcTemplate));
     }
 
@@ -45,8 +45,8 @@ public class EventController {
 
     @GetMapping(value = "/getevento/{idevento}")
     @ResponseBody
-    public List<Map<String, Object>> getEvento(@PathVariable("idevento") int id){
-        return eventi.getEvento(id,jdbcTemplate);
+    public List<Map<String, Object>> getEvento(@PathVariable("idevento") int idEvento){
+        return eventi.getEvento(idEvento,jdbcTemplate);
     }
 
     @GetMapping(value = "/geteventipubblicati/{emailutente}")

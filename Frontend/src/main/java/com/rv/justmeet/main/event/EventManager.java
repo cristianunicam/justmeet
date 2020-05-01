@@ -2,6 +2,7 @@ package com.rv.justmeet.main.event;
 
 import com.google.gson.Gson;
 import com.rv.justmeet.exceptions.FieldToModifyDoesNotExistsException;
+import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.parser.Parser;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.utility.RequestComunication;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.rv.justmeet.utility.iOUtility.*;
+import static com.rv.justmeet.utility.IOUtility.*;
 
 
 /**
@@ -18,8 +19,8 @@ import static com.rv.justmeet.utility.iOUtility.*;
  * <p>
  * Classe Singleton che gestisce le azioni relaive agli eventi
  */
-public class EventsManager {
-    private static EventsManager instance = null;
+public class EventManager {
+    private static EventManager instance = null;
     private final Map<String, Supplier<?>> campiEvento = new HashMap<>();
     private final String[] campiDatabaseModificabili = {
             "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti"
@@ -28,19 +29,19 @@ public class EventsManager {
             "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero massimo partecipanti"
     };
 
-    private EventsManager() {
+    private EventManager() {
     }
 
-    public static EventsManager getInstance() {
+    public static EventManager getInstance() {
         if (instance == null) {
-            instance = new EventsManager();
+            instance = new EventManager();
             instance.mapInit();
         }
         return instance;
     }
 
     private static String getDomain() {
-        return "/eventi/";
+        return "/eventi";
     }
 
     /**
@@ -77,7 +78,9 @@ public class EventsManager {
         json.put("emailOrganizzatore", LoggedUser.getInstance().getEmail());
 
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restSend(getDomain() + "/inserimento", "POST", gson.toJson(json));
+        String response = RequestComunication.getInstance().restRequest(
+                getDomain() + "/inserimento", "POST", gson.toJson(json)
+        );
 
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Evento inserito!");
@@ -86,34 +89,6 @@ public class EventsManager {
 
     }
 
-    /**
-     * Permette di scegliere un evento a cui partecipare. Salvando poi la partecipazione nel database
-     */
-    public void partecipaEvento(final int idEvento) {
-        String response = RequestComunication.getInstance().restRequest(
-                "/utente/partecipa/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET");
-        String risposta;
-        if ((risposta = Parser.getInstance().parseJsonresponseString(response)).equals("true"))
-            printer.accept("Partecipazione effettuata!");
-        else if (risposta.equals("presente"))
-            printer.accept("Errore, l'utente partecipa già a questo evento!");
-        else if (risposta.equals("pieno"))
-            printer.accept("Errore, l'evento ha raggiunto il numero massimo di partecipanti!");
-    }
-
-    /**
-     * Metodo per annullare la partecipazione ad un evento
-     *
-     * @param idEvento id dell'evento del quale si vuole annullare la partecipazione
-     */
-    public void annullaPartecipazione(final int idEvento) {
-        String response = RequestComunication.getInstance().restRequest(
-                "/utente/annullapartecipazione/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET");
-        if (Parser.getInstance().parseSuccess(response))//vedere quale parse fare in base alla risposta
-            printer.accept("Eliminazione effettutata");
-        else
-            printer.accept("Eliminazione non effettuata");
-    }
 
     /**
      * Metodo per la modifica di un evento
@@ -145,8 +120,8 @@ public class EventsManager {
             printer.accept(e.getMessage());
             return;
         }
-        String response = RequestComunication.getInstance().restSend(
-                getDomain() + "modifica", "POST", getJsonModificaEvento(campoModificato, nomeCampo, idEvento)
+        String response = RequestComunication.getInstance().restRequest(
+                getDomain() + "/modifica", "POST", getJsonModificaEvento(campoModificato, nomeCampo, idEvento)
         );
 
         if (Parser.getInstance().parseSuccess(response))
@@ -155,6 +130,15 @@ public class EventsManager {
             printer.accept("L'evento non è stato modificato!");
     }
 
+
+    /**
+     * Ritorna la stringa contente i campi in json con i nomi dei rispettivi campi
+     *
+     * @param campoModificato valore del campo modificato
+     * @param nomeCampo nome del campo da voler modificare
+     * @param idEvento id dell'evento nel quale si vuole modificare un determinato campo
+     * @return codice json dati i parametri passati
+     */
     private String getJsonModificaEvento(String campoModificato, String nomeCampo, int idEvento) {
         HashMap<String, String> json = new HashMap<>();
         json.put("nomeCampo", nomeCampo);
@@ -165,12 +149,14 @@ public class EventsManager {
         return gson.toJson(json);
     }
 
+
     /**
      * Metodo per annullare un evento
      */
     public void annullaEvento(final int idEvento) {
-        String response = RequestComunication.getInstance().restRequest(
-                getDomain() + "annulla/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET");
+        String response = BackendConnection.getInstance().checkAndRequest(
+                getDomain() + "/annulla/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
+        );
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Evento annullato!");
     }

@@ -1,6 +1,7 @@
 package com.rv.justmeet.utility;
 
 import com.rv.justmeet.exceptions.*;
+import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.parser.EventParser;
 
 import java.io.BufferedReader;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-public class iOUtility {
+public class IOUtility {
     public static Consumer<String> printer = System.out::println;
     public static BufferedReader stringReader = new BufferedReader(new InputStreamReader(System.in));
     public static Scanner scanner = new Scanner(System.in);
@@ -24,7 +25,9 @@ public class iOUtility {
     public static int inserisciCategoriaEvento() {
         int indiceScelta;
         try {
-            String response = RequestComunication.getInstance().restRequest("/eventi/getcategorie", "GET");
+            String response = BackendConnection.getInstance().checkAndRequest(
+                    "/eventi/getcategorie", "GET",null
+            );
             List<String> categorie = EventParser.getInstance().parseCategorie(response);
 
             for (int x = 0; x < categorie.size(); x++)

@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,7 +22,7 @@ public class UserController {
     public JdbcTemplate jdbcTemplate;
     @Autowired
     private UserRepository utenti;
-
+    
 
     @RequestMapping(path="/registrazione", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.CREATED)
@@ -53,5 +52,11 @@ public class UserController {
     @ResponseBody
     public Map<String,Boolean> annullaPartecipazione(@PathVariable("idevento") int idEvento,@PathVariable("emailutente") String emailUtente){
         return Collections.singletonMap("success",utenti.annullaPartecipazione(jdbcTemplate,idEvento,emailUtente));
+    }
+
+    @RequestMapping(value = "/eliminatest")
+    @ResponseBody
+    public Map<String, Boolean> eliminatest(){
+        return Collections.singletonMap("success",utenti.eliminaTest(jdbcTemplate));
     }
 }

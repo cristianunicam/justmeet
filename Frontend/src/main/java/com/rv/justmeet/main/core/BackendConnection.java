@@ -3,7 +3,7 @@ package com.rv.justmeet.main.core;
 
 import com.rv.justmeet.utility.RequestComunication;
 
-import static com.rv.justmeet.utility.iOUtility.printer;
+import static com.rv.justmeet.utility.IOUtility.printer;
 
 /**
  * Classe per la connessione e gestione del database
@@ -33,19 +33,29 @@ public class BackendConnection {
         return instance;
     }
 
-
+    /**
+     * Ritorna il dominio con l'aggiunta della porta
+     *
+     * @return dominio
+     */
     public String getDomain() {
         return this.domain + ":" + this.port;
     }
 
 
-    public String checkAndRequest(String path, String method) {
+    /**
+     * Controlla che il server sia raggiungibile ed esegue la richiesta
+     * @param path Indirizzo al quale effettuare la richiesta
+     * @param method il tipo di richiesta da effettuare
+     * @return <code>String</code> la risposta della query effettuata
+     */
+    public String checkAndRequest(String path, String method , String parameters) {
         if (Boolean.parseBoolean(
                 RequestComunication.getInstance().restRequest(
-                        getDomain() + "/testconnessione", "GET"
+                        getDomain() + "/testconnessione", "GET" , parameters
                 )
         ))
-            return RequestComunication.getInstance().restRequest(path, method);
+            return RequestComunication.getInstance().restRequest(path, method , parameters);
 
         printer.accept("Connessione fallita!");
         System.exit(-1);

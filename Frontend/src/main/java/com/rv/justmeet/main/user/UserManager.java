@@ -2,12 +2,13 @@ package com.rv.justmeet.main.user;
 
 import com.google.gson.Gson;
 import com.rv.justmeet.exceptions.*;
+import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.parser.Parser;
 import com.rv.justmeet.utility.RequestComunication;
 
 import java.util.HashMap;
 
-import static com.rv.justmeet.utility.iOUtility.*;
+import static com.rv.justmeet.utility.IOUtility.*;
 
 
 /**
@@ -42,7 +43,7 @@ public class UserManager {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
         //Utente corrispondente ai dati inseriti presente nel database
-        String response = RequestComunication.getInstance().restSend(getDomain() + "login", "POST",
+        String response = RequestComunication.getInstance().restRequest(getDomain() + "login", "POST",
                 "{ \"email\":\"" + datiLogin.email + "\", \"password\":\"" + datiLogin.password + "\"}");
         if (Parser.getInstance().parseSuccess(response)) {
             //Loggo l'utente
@@ -76,12 +77,45 @@ public class UserManager {
                 printer.accept("Risposta non accettata! Riprovare!");
         }
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restSend(getDomain() + "registrazione", "POST", gson.toJson(json));
+        String response = RequestComunication.getInstance().restRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Registrazione effettuata!");
         else
             printer.accept("Registrazione non effettuata!");
 
+    }
+
+
+    /**
+     * Permette di scegliere un evento a cui partecipare. Salvando poi la partecipazione nel database
+     */
+    public void partecipaEvento(final int idEvento) {
+        String response = BackendConnection.getInstance().checkAndRequest(
+                "/utente/partecipa/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
+        );
+        String risposta;
+        if ((risposta = Parser.getInstance().parseJsonResponseString(response)).equals("true"))
+            printer.accept("Partecipazione effettuata!");
+        else if (risposta.equals("presente"))
+            printer.accept("Errore, l'utente partecipa già a questo evento!");
+        else if (risposta.equals("pieno"))
+            printer.accept("Errore, l'evento ha raggiunto il numero massimo di partecipanti!");
+    }
+
+
+    /**
+     * Metodo per annullare la partecipazione ad un evento
+     *
+     * @param idEvento id dell'evento del quale si vuole annullare la partecipazione
+     */
+    public void annullaPartecipazione(final int idEvento) {
+        String response = BackendConnection.getInstance().checkAndRequest(
+                "/utente/annullapartecipazione/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
+        );
+        if (Parser.getInstance().parseSuccess(response))//vedere quale parse fare in base alla risposta
+            printer.accept("Eliminazione effettutata");
+        else
+            printer.accept("Eliminazione non effettuata");
     }
 
 
@@ -97,7 +131,9 @@ public class UserManager {
             if (!email.contains("@"))
                 throw new WrongMailException();
             else {
-                String response = RequestComunication.getInstance().restRequest(getDomain() + "controlloemail/" + email, "GET");
+                String response = BackendConnection.getInstance().checkAndRequest(
+                        getDomain() + "controlloemail/" + email, "GET",null
+                );
                 if (Parser.getInstance().parseSuccess(response))
                     throw new AlreadyExistingUser();
             }
@@ -157,11 +193,9 @@ public class UserManager {
             this.email = email;
             this.password = password;
         }
-
         public String getEmail() {
             return email;
         }
-
         public String getPassword() {
             return password;
         }

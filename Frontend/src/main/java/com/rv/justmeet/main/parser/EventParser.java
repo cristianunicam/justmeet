@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.rv.justmeet.utility.iOUtility.printer;
+import static com.rv.justmeet.utility.IOUtility.printer;
 
 public class EventParser {
 
@@ -22,6 +22,12 @@ public class EventParser {
         return instance;
     }
 
+    /**
+     * Effettua il parse dei dati dell'evento, data una stringa di testo
+     *
+     * @param jsonString la stringa contente i dati json
+     * @return La lista dei dati una volta effettuato il parse
+     */
     public List<String> parseEvento(String jsonString) {
         String[] campi = {
                 "id", "categoria", "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti", "emailOrganizzatore"
@@ -41,7 +47,12 @@ public class EventParser {
 
     }
 
-
+    /**
+     * Effettua il parse dei dati della bacheca
+     *
+     * @param jsonString Stringa contenente il codice json con i dati relativi agli eventi
+     * @return La lista dei dati dei campi dell'evento
+     */
     public List<String> parseBacheca(String jsonString) {
         String[] campi = {"id", "categoria", "titolo", "descrizione", "citta", "data", "prezzo"};
         List<String> dati = new ArrayList<>();
@@ -60,6 +71,13 @@ public class EventParser {
         return dati;
     }
 
+
+    /**
+     * Effettua il parse delle categorie dato il codice in json
+     *
+     * @param jsonString la stringa contente i dati "raw"
+     * @return la lista delle possibili categorie
+     */
     public List<String> parseCategorie(String jsonString) {
         List<String> dati = new ArrayList<>();
         try {

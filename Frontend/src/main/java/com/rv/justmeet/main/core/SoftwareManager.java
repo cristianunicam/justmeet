@@ -1,14 +1,14 @@
 package com.rv.justmeet.main.core;
 
-import com.rv.justmeet.main.event.EventsDisplayer;
-import com.rv.justmeet.main.event.EventsManager;
+import com.rv.justmeet.main.event.EventDisplayer;
+import com.rv.justmeet.main.event.EventManager;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserManager;
 
 import java.io.IOException;
 
-import static com.rv.justmeet.utility.iOUtility.getString;
-import static com.rv.justmeet.utility.iOUtility.printer;
+import static com.rv.justmeet.utility.IOUtility.getString;
+import static com.rv.justmeet.utility.IOUtility.printer;
 
 /**
  * Classe per la gestione dell'applicativo
@@ -115,23 +115,23 @@ public class SoftwareManager {
                 break;
             case "1":
                 clearScreen();
-                EventsManager.getInstance().aggiungiEvento();
+                EventManager.getInstance().aggiungiEvento();
                 break;
             case "2":
                 clearScreen();
-                EventsDisplayer.visualizzaBacheca();
+                EventDisplayer.visualizzaBacheca();
                 break;
             case "3":
                 clearScreen();
-                EventsDisplayer.visualizzaEvento();
+                EventDisplayer.visualizzaEvento();
                 break;
             case "4":
                 clearScreen();
-                EventsDisplayer.visualizzaEventiPubblicati();
+                EventDisplayer.visualizzaEventiPubblicati();
                 break;
             case "5":
                 clearScreen();
-                EventsDisplayer.visualizzaPartecipazioneEventi();
+                EventDisplayer.visualizzaPartecipazioneEventi();
                 break;
         }
         gestioneBacheca();
