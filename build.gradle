@@ -1,0 +1,24 @@
+plugins {
+    id 'application'
+}
+
+group 'com.rv'
+version '1.0'
+
+repositories {
+    jcenter()
+}
+
+application{
+    mainClassName = 'com.rv.justmeet.JustMeet'
+}
+
+run{
+    standardInput = System.in
+}
+
+dependencies {
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
+    runtimeOnly "mysql:mysql-connector-java:8.0.19"
+}
+
