@@ -3,6 +3,7 @@ package com.rv.justmeet.main.core;
 import com.rv.justmeet.main.event.EventDisplayer;
 import com.rv.justmeet.main.event.EventManager;
 import com.rv.justmeet.main.user.LoggedUser;
+import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
 
 import java.io.IOException;
@@ -104,6 +105,7 @@ public class SoftwareManager {
                         "3) Per visualizzare un determinato evento o modificarlo\n" +
                         "4) Per visualizzare la lista degli eventi pubblicati\n" +
                         "5) Per visualizzare la lista degli eventi ai quali si partecipa\n" +
+                        "6) Visualizza il tuo profilo\n"+
                         "Inserisci la tua scelta: "
         );
 
@@ -132,6 +134,10 @@ public class SoftwareManager {
             case "5":
                 clearScreen();
                 EventDisplayer.visualizzaPartecipazioneEventi();
+                break;
+            case "6":
+                clearScreen();
+                UserDisplayer.menuUtente();
                 break;
         }
         gestioneBacheca();

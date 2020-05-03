@@ -84,4 +84,11 @@ public class EventController {
     public Map<String, Boolean> isOrganizzatore(@PathVariable("emailutente") String emailUtente, @PathVariable("idevento") int idEvento){
         return Collections.singletonMap("success",eventi.isOrganizzatore(jdbcTemplate, emailUtente,idEvento));
     }
+
+    @GetMapping(value = "/getpartecipanti/{idevento}")
+    @ResponseBody
+    public List<Map<String,Object>> getPartecipanti(@PathVariable("idevento") int idEvento){
+        return eventi.getPartecipanti(jdbcTemplate,idEvento);
+    }
+
 }

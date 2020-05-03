@@ -1,9 +1,11 @@
 package com.rv.justmeet.main.user;
 
 import com.google.gson.Gson;
-import com.rv.justmeet.exceptions.*;
+import com.rv.justmeet.exceptions.AlreadyExistingUser;
+import com.rv.justmeet.exceptions.WrongMailException;
 import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.parser.Parser;
+import com.rv.justmeet.utility.IOUtility;
 import com.rv.justmeet.utility.RequestComunication;
 
 import java.util.HashMap;
@@ -45,12 +47,10 @@ public class UserManager {
         //Utente corrispondente ai dati inseriti presente nel database
         String response = RequestComunication.getInstance().restRequest(getDomain() + "login", "POST",
                 "{ \"email\":\"" + datiLogin.email + "\", \"password\":\"" + datiLogin.password + "\"}");
-        if (Parser.getInstance().parseSuccess(response)) {
-            //Loggo l'utente
+        if (Parser.getInstance().parseSuccess(response))
             LoggedUser.getInstance(datiLogin.getEmail());
-        } else {
+        else
             return datiLoginErrati();
-        }
         return true;
     }
 
@@ -176,6 +176,49 @@ public class UserManager {
         }
         return false;
     }
+
+
+    public void modificaProfilo(final int sceltaCampo){
+        String nomeCampo = campiUtente[sceltaCampo];
+        String campoModificato = null;
+        int eta = 0;
+        boolean uguali = false;
+
+        do {
+            switch (sceltaCampo) {
+                case 1:
+                    uguali = (campoModificato = IOUtility.inserisciStringa("password", 3, 50)).equals(
+                            IOUtility.inserisciStringa("password",3,50));
+                    break;
+                case 2:
+                    uguali = (campoModificato = IOUtility.inserisciStringa("nome", 3, 30)).equals(
+                            IOUtility.inserisciStringa("nome",3,30));
+                    break;
+                case 3:
+                    uguali = (IOUtility.inserisciStringa("cognome", 3, 30)).equals(
+                            IOUtility.inserisciStringa("cognome",3,30));
+                    break;
+                case 4:
+                    uguali = (eta = IOUtility.inserisciInt("eta'", 14, 100, "l'eta' deve essere maggiore di 14 anni")) ==
+                    IOUtility.inserisciInt("eta' di nuovo", 14, 100, "l'eta' deve essere maggiore di 14 anni");
+                    break;
+            }
+            if(!uguali)
+                printer.accept("I campi inseriti non coincidono! Riprovare!");
+
+        }while(!uguali);
+
+
+        String risultato = RequestComunication.getInstance().restRequest(
+                getDomain()+"modifica/"+LoggedUser.getInstance().getEmail()+":"+nomeCampo+":"+(campoModificato == null ? eta : campoModificato),"GET",null
+        );
+
+        if(Parser.getInstance().parseSuccess(risultato))
+            printer.accept("La modifica è stata effettuata");
+        else
+            printer.accept("Errore nell'esecuzione della query, modifica non effettuata");
+    }
+
 
     private String getDomain() {
         return "/utente/";

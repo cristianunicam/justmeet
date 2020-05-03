@@ -71,10 +71,8 @@ public class EventRepository {
      * @return <code>true</code> se l'evento è stato aggiunto, <code>false</code> altrimenti
      */
     public boolean inserimento(JdbcTemplate jdbcTemplate) {
-        if(jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `maxPartecipanti`, `emailOrganizzatore`) " +
-                "VALUES (NULL, "+this.categoria+", '"+this.titolo+"', '"+this.descrizione+"', '"+this.citta+"', '"+this.via+"', '"+this.data+"', '"+this.oraInizio+"', '"+this.oraFine+"', "+this.prezzo+", "+this.maxPartecipanti+", '"+ this.emailOrganizzatore+"')") != 1)
-            return false;
-        return true;
+        return jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `maxPartecipanti`, `emailOrganizzatore`) " +
+                "VALUES (NULL, " + this.categoria + ", '" + this.titolo + "', '" + this.descrizione + "', '" + this.citta + "', '" + this.via + "', '" + this.data + "', '" + this.oraInizio + "', '" + this.oraFine + "', " + this.prezzo + ", " + this.maxPartecipanti + ", '" + this.emailOrganizzatore + "')") == 1;
     }
 
 
@@ -85,11 +83,9 @@ public class EventRepository {
      * @return <code>true</code> se l'evento è stato modificato, <code>false</code> altrimenti
      */
     public boolean modifica(JdbcTemplate jdbcTemplate, Map<String,Object> payload){
-        if(jdbcTemplate.update("UPDATE `eventsdb` " +
-                "SET "+payload.get("nomeCampo")+" = '"+payload.get("campoModificato")+"' "+
-                "WHERE id = "+payload.get("idEvento")) != 1)
-            return false;
-        return true;
+        return jdbcTemplate.update("UPDATE `eventsdb` " +
+                "SET " + payload.get("nomeCampo") + " = '" + payload.get("campoModificato") + "' " +
+                "WHERE id = " + payload.get("idEvento")) == 1;
     }
 
 
@@ -153,7 +149,7 @@ public class EventRepository {
      * @param idEvento id dell'evento che si vuole annullare
      * @param emailUtente email dell'utente che vuole annullare l'evento
      */
-    public Boolean annullaEvento(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean annullaEvento(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
         jdbcTemplate.update(
                 "DELETE FROM partecipantsdb " +
                 "WHERE idEvento = "+idEvento);
@@ -189,7 +185,7 @@ public class EventRepository {
      * @param idEvento evento del quale controllare se si è l'organizzatore
      * @return true se l'utente è l'organizzatore dell'evento, false altrimenti
      */
-    public Boolean isPartecipante(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean isPartecipante(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
         return !jdbcTemplate.queryForList("SELECT emailUtente " +
                 "FROM `partecipantsdb` " +
                 "WHERE idEvento = " + idEvento +
@@ -205,11 +201,15 @@ public class EventRepository {
      * @param idEvento evento del quale controllare se si è l'organizzatore
      * @return true se l'utente è l'organizzatore dell'evento, false altrimenti
      */
-    public Boolean isOrganizzatore(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean isOrganizzatore(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
         return !jdbcTemplate.queryForList("SELECT emailOrganizzatore " +
                 "FROM `eventsdb` " +
                 "WHERE id = " + idEvento +
                 " AND emailOrganizzatore = '" + emailUtente + "'"
         ).isEmpty();
+    }
+
+    public List<Map<String, Object>> getPartecipanti(JdbcTemplate jdbcTemplate,final int idEvento) {
+        return jdbcTemplate.queryForList("SELECT emailUtente FROM partecipantsdb WHERE idEvento = "+idEvento);
     }
 }

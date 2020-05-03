@@ -4,10 +4,15 @@ import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.core.SoftwareManager;
 import com.rv.justmeet.main.parser.EventParser;
 import com.rv.justmeet.main.parser.Parser;
+import com.rv.justmeet.main.parser.UserParser;
 import com.rv.justmeet.main.user.LoggedUser;
+import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
+import com.rv.justmeet.main.user.review.ReviewManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.rv.justmeet.utility.IOUtility.*;
 
@@ -120,13 +125,12 @@ public class EventDisplayer {
             printer.accept("1) Annulla partecipazione");
         else
             printer.accept("1) Partecipa ad evento");
-
-        printer.accept("Inserisci la tua scelta: ");
+        printer.accept("2) Visualizza i partecipanti all'evento\n" +
+                "Inserisci la tua scelta: ");
 
         switch (getString()) {
             case "0":
                 return;
-
             case "1":
                 SoftwareManager.clearScreen();
                 if (partecipa)
@@ -134,6 +138,13 @@ public class EventDisplayer {
                 else
                     UserManager.getInstance().partecipaEvento(idEvento);
                 break;
+            case "2":
+                SoftwareManager.clearScreen();
+                visualizzaPartecipanti(idEvento);
+                break;
+            default:
+                printer.accept("Il valore inserito è errato! Riprovare.");
+                menuEventoPartecipante(idEvento);
         }
     }
 
@@ -146,6 +157,7 @@ public class EventDisplayer {
         printer.accept("\n0) Esci\n" +
                 "1) Modifica evento\n" +
                 "2) Annulla evento\n" +
+                "3) Visualizza partecipanti all'evento\n"+
                 "Inserisci la tua scelta: "
         );
 
@@ -159,6 +171,14 @@ public class EventDisplayer {
             case "2":
                 SoftwareManager.clearScreen();
                 EventManager.getInstance().annullaEvento(idEvento);
+                break;
+            case "3":
+                SoftwareManager.clearScreen();
+                visualizzaPartecipanti(idEvento);
+                break;
+            default:
+                printer.accept("Valore inserito errato! Riprovare.");
+                menuEventoOrganizzatore(idEvento);
                 break;
         }
     }
@@ -188,6 +208,36 @@ public class EventDisplayer {
         for (int x = 0; x < campiEvento.length; x++)
             printer.accept(campiEvento[x] + ": " + evento.get(x));
     }
+
+
+
+    private static void visualizzaPartecipanti(int idEvento){
+        String jsonString = BackendConnection.getInstance().checkAndRequest(
+                "/eventi/visualizzapartecipanti/"+ idEvento, "GET",null
+        );
+        Map<Integer , String> utenti = UserParser.parsePartecipanti(jsonString);
+
+        for(int x = 0 ; x< utenti.size() ; x++){
+            printer.accept(x+1+")"+utenti.get(x));
+        }
+        printer.accept("\n0) Indietro\n" +
+                "1) Visualizza profilo di un partecipante\n" +
+                "Inserisci la tua scelta: "
+        );
+
+        switch (getString()) {
+            case "0":
+                return;
+            case "1":
+                UserDisplayer.scegliPartecipante(utenti);
+                break;
+            default:
+                SoftwareManager.clearScreen();
+                printer.accept("Scelta errata! Riprovare!.\n");
+                visualizzaPartecipanti(idEvento);
+        }
+    }
+
 
     /**
      * Ritorna l'indirizzo che contiene le richieste che verranno effettuate da questa classe

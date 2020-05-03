@@ -3,10 +3,12 @@ package com.rv.justmeet.controller;
 import com.rv.justmeet.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 
@@ -59,4 +61,17 @@ public class UserController {
     public Map<String, Boolean> eliminatest(){
         return Collections.singletonMap("success",utenti.eliminaTest(jdbcTemplate));
     }
+
+    @GetMapping(value = "/getprofilo/{emailutente}")
+    @ResponseBody
+    public List<Map<String,Object>> getProfilo(@PathVariable("emailutente") String emailUtente){
+        return utenti.getProfilo(emailUtente,jdbcTemplate);
+    }
+
+    @GetMapping(value = "/modifica/{emailutente}:{nomecampo}:{valore}")
+    @ResponseBody
+    public Map<String,Boolean> getProfilo(@PathVariable("emailutente") String emailUtente, @PathVariable("nomeCampo") String nomeCampo, @PathVariable("valore") String valoreDaModificare){
+        return Collections.singletonMap("success",utenti.modifica(emailUtente,nomeCampo,valoreDaModificare,jdbcTemplate));
+    }
+
 }

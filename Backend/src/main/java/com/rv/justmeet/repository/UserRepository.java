@@ -3,6 +3,9 @@ package com.rv.justmeet.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Repository contenete i dati di un utente e i metodi per l'esecuzione delle query nel database
  *
@@ -146,5 +149,19 @@ public class UserRepository {
      */
     public boolean eliminaTest(JdbcTemplate jdbcTemplate){
         return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test@unicam.it'") == 1;
+    }
+
+    /**
+     * Metodo che ritorna i dati di un utente data la sua mail
+     *
+     * @param emailUtente email dell'utente del quale si vuole ritornare il profilo
+     * @return List<Map<String,Object>> contente i dati di un utente
+     */
+    public List<Map<String, Object>> getProfilo(String emailUtente, JdbcTemplate jdbcTemplate) {
+        return jdbcTemplate.queryForList("SELECT email,nome,cognome,eta FROM userdb WHERE email = '"+emailUtente+"'");
+    }
+
+    public boolean modifica(String emailUtente, String nomeCampo, String valoreDaModificare, JdbcTemplate jdbcTemplate) {
+        return jdbcTemplate.update("UPDATE `userdb` SET `"+nomeCampo+"` = '"+valoreDaModificare+"' WHERE `userdb`.`email` = '"+emailUtente+"'") == 1;
     }
 }
