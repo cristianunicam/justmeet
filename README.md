@@ -28,4 +28,4 @@ Nello sviluppo dell’applicazione sarà necessario focalizzarsi e definire la l
 <code>gradlew run</code> 
 <br> A questo punto sarà possibile utilizzare il programma.
 
-PS: Prima di avviare il backend è necessario avere implementato un database, per fare questo si può importare la struttura del database inserita nel path justmeet/backend/justmeet.sql
+<br>PS: Prima di avviare il backend è necessario avere implementato un database, per fare questo si può importare la struttura del database inserita nel path justmeet/backend/justmeet.sql
