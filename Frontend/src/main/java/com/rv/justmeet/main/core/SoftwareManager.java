@@ -5,6 +5,8 @@ import com.rv.justmeet.main.event.EventManager;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
+import com.rv.justmeet.utility.IOUtility;
+import org.apache.catalina.User;
 
 import java.io.IOException;
 
@@ -106,6 +108,7 @@ public class SoftwareManager {
                         "4) Per visualizzare la lista degli eventi pubblicati\n" +
                         "5) Per visualizzare la lista degli eventi ai quali si partecipa\n" +
                         "6) Visualizza il tuo profilo\n"+
+                        "7) Per visualizzare il profilo di un altro utente\n"+
                         "Inserisci la tua scelta: "
         );
 
@@ -138,6 +141,12 @@ public class SoftwareManager {
             case "6":
                 clearScreen();
                 UserDisplayer.menuUtente();
+                break;
+            case "7":
+                clearScreen();
+                UserDisplayer.menuPartecipante(
+                        IOUtility.inserisciStringa("email utente da cercare",5 , 50)
+                );
                 break;
         }
         gestioneBacheca();

@@ -23,10 +23,10 @@ public class EventManager {
     private static EventManager instance = null;
     private final Map<String, Supplier<?>> campiEvento = new HashMap<>();
     private final String[] campiDatabaseModificabili = {
-            "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti"
+            "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo","minPartecipanti", "maxPartecipanti"
     };
     private final String[] campiEventoModificabili = {
-            "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero massimo partecipanti"
+            "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero minimo partecipanti","Numero massimo partecipanti"
     };
 
     private EventManager() {
@@ -56,6 +56,9 @@ public class EventManager {
         campiEvento.put("oraInizio", () -> inserisciOra("inizio"));
         campiEvento.put("oraFine", () -> inserisciOra("fine"));
         campiEvento.put("prezzo", () -> inserisciFloat("prezzo"));
+        campiEvento.put("minPartecipanti", () -> inserisciInt(
+                "numero minimo di partecipanti affinche' l'evento possa esserci",0, 50000,"Il numero minimo di partecipanti deve essere maggiore di 0"
+        ));
         campiEvento.put("maxPartecipanti", () -> inserisciInt(
                 "numero massimo partecipanti", 2, 100000, "Il numero di partecipanti deve essere compreso tra 2 e 100000"));
     }
@@ -74,9 +77,9 @@ public class EventManager {
         json.put("oraInizio", (String) campiEvento.get("oraInizio").get());
         json.put("oraFine", (String) campiEvento.get("oraFine").get());
         json.put("prezzo", campiEvento.get("prezzo").get().toString());
+        json.put("minPartecipanti",campiEvento.get("minPartecipanti").get().toString());
         json.put("maxPartecipanti", campiEvento.get("maxPartecipanti").get().toString());
         json.put("emailOrganizzatore", LoggedUser.getInstance().getEmail());
-
         Gson gson = new Gson();
         String response = RequestComunication.getInstance().restRequest(
                 getDomain() + "/inserimento", "POST", gson.toJson(json)
@@ -86,7 +89,6 @@ public class EventManager {
             printer.accept("Evento inserito!");
         else
             printer.accept("Evento non inserito!");
-
     }
 
 

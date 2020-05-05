@@ -12,8 +12,15 @@ import java.util.Map;
 import static com.rv.justmeet.utility.IOUtility.printer;
 
 public class UserParser {
+    private static UserParser instance = null;
 
-    public static List<String> parseDatiUtente(String jsonString){
+    public static UserParser getInstance() {
+        if (instance == null)
+            instance = new UserParser();
+        return instance;
+    }
+
+    public List<String> parseDatiUtente(String jsonString){
         String[] campi = {"email" , "nome" , "cognome" , "eta"};
         List<String> dati = new ArrayList<>();
         try {
@@ -29,7 +36,7 @@ public class UserParser {
         return dati;
     }
 
-    public static Map<Integer , String> parsePartecipanti(String jsonString){
+    public Map<Integer , String> parsePartecipanti(String jsonString){
         Map<Integer , String> partecipanti = new HashMap<>();
         try {
             final JSONArray jsonUtenti = new JSONArray(jsonString);
@@ -45,21 +52,4 @@ public class UserParser {
         return partecipanti;
     }
 
-    public static List<String> parseRecensioni(String jsonString){
-        String[] campi = {"emailRecensore" , "emailRecensito" , "voto" , "descrizione"};
-
-        List<String> dati = new ArrayList<>();
-        try {
-            final JSONArray evento = new JSONArray(jsonString);
-            JSONObject jsonObj = evento.getJSONObject(0);
-            for(int x = 0 ; x < evento.length() ; x++) {
-                for (String s : campi)
-                    dati.add(s + ": " + jsonObj.getString(s));
-            }
-        } catch (JSONException e) {
-            printer.accept(e.getMessage());
-            System.exit(-1);
-        }
-        return dati;
-    }
 }

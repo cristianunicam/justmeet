@@ -28,7 +28,10 @@ public class UserDisplayer {
 
 
     public static void menuPartecipante(String emailUtente){
-        visualizzaProfilo(emailUtente);
+        if(visualizzaProfilo(emailUtente)){
+            printer.accept("Nessun utente trovato!");
+            return;
+        }
         printer.accept("\n0) Esci\n" +
                 "1) Visualizza recensioni\n" +
                 "2) Scrivi recensione\n"+
@@ -53,7 +56,10 @@ public class UserDisplayer {
     }
 
     public static void menuUtente(){
-        visualizzaProfilo(LoggedUser.getInstance().getEmail());
+        if(visualizzaProfilo(LoggedUser.getInstance().getEmail())) {
+            printer.accept("Nessun utente trovato!");
+            return;
+        }
         printer.accept("\n0) Indietro\n" +
                 "1) Modifica profilo\n" +
                 "2) Visualizza le tue recensioni\n"+
@@ -91,13 +97,17 @@ public class UserDisplayer {
         System.exit(0);
     }
 
-    private static void visualizzaProfilo(String emailUtente){
+    private static boolean visualizzaProfilo(String emailUtente){
         String jsonString = BackendConnection.getInstance().checkAndRequest(
                 "/utente/getprofilo/"+ emailUtente, "GET",null
         );
-        List<String> datiUtente = UserParser.parseDatiUtente(jsonString);
-        for (String s : datiUtente) {
+        List<String> datiUtente = UserParser.getInstance().parseDatiUtente(jsonString);
+        if(datiUtente.size() == 0)
+            return true;
+        for (String s : datiUtente)
             printer.accept(s);
-        }
+        return false;
     }
+
+
 }

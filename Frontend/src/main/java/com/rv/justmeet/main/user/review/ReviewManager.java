@@ -2,7 +2,9 @@ package com.rv.justmeet.main.user.review;
 
 import com.google.gson.Gson;
 import com.rv.justmeet.main.core.BackendConnection;
+import com.rv.justmeet.main.parser.EventParser;
 import com.rv.justmeet.main.parser.Parser;
+import com.rv.justmeet.main.parser.ReviewParser;
 import com.rv.justmeet.main.parser.UserParser;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.utility.IOUtility;
@@ -40,7 +42,11 @@ public class ReviewManager {
         String jsonString = BackendConnection.getInstance().checkAndRequest(
                 getDomain()+"/visualizzarecensioni/"+ emailUtente, "GET",null
         );
-        List<String> recensioni = UserParser.parseRecensioni(jsonString);
+        List<String> recensioni = ReviewParser.getInstance().parseRecensioni(jsonString);
+        if(recensioni.size() == 0) {
+            printer.accept("Nessuna recensione trovata!");
+            return;
+        }
         //alla fine di una recensione mette una riga vuota
         for (String s : recensioni) {
             for (int y = 0; y < 4; y++)

@@ -151,6 +151,9 @@ public class UserRepository {
         return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test@unicam.it'") == 1;
     }
 
+    public boolean eliminaTest2(JdbcTemplate jdbcTemplate){
+        return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test1@unicam.it' OR email = 'test2@unicam.it'") == 1;
+    }
     /**
      * Metodo che ritorna i dati di un utente data la sua mail
      *
@@ -162,6 +165,6 @@ public class UserRepository {
     }
 
     public boolean modifica(String emailUtente, String nomeCampo, String valoreDaModificare, JdbcTemplate jdbcTemplate) {
-        return jdbcTemplate.update("UPDATE `userdb` SET `"+nomeCampo+"` = '"+valoreDaModificare+"' WHERE `userdb`.`email` = '"+emailUtente+"'") == 1;
+        return jdbcTemplate.update("UPDATE `userdb` SET "+nomeCampo+" = '"+valoreDaModificare+"' WHERE `userdb`.`email` = '"+emailUtente+"'") == 1;
     }
 }

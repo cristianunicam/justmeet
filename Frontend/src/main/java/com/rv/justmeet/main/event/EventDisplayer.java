@@ -8,9 +8,7 @@ import com.rv.justmeet.main.parser.UserParser;
 import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
-import com.rv.justmeet.main.user.review.ReviewManager;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -215,7 +213,7 @@ public class EventDisplayer {
         String jsonString = BackendConnection.getInstance().checkAndRequest(
                 "/eventi/visualizzapartecipanti/"+ idEvento, "GET",null
         );
-        Map<Integer , String> utenti = UserParser.parsePartecipanti(jsonString);
+        Map<Integer , String> utenti = UserParser.getInstance().parsePartecipanti(jsonString);
 
         for(int x = 0 ; x< utenti.size() ; x++){
             printer.accept(x+1+")"+utenti.get(x));

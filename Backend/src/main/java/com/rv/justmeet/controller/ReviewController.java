@@ -25,7 +25,7 @@ public class ReviewController {
 
     @RequestMapping(path="/inserimento", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.CREATED)
-    public Map<String, Boolean> pubblicaEvento(@RequestBody ReviewRepository recensione){
+    public Map<String, Boolean> pubblicaRecensioni(@RequestBody ReviewRepository recensione){
         return Collections.singletonMap("success",recensione.inserimento(jdbcTemplate));
     }
 

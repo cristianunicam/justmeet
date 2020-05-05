@@ -17,6 +17,7 @@ public class EventRepository {
     private String oraInizio;
     private String oraFine;
     private float prezzo;
+    private int minPartecipanti;
     private int maxPartecipanti;
     private String emailOrganizzatore;
 
@@ -56,6 +57,8 @@ public class EventRepository {
         this.prezzo = prezzo;
     }
 
+    public void setMinPartecipanti(int minPartecipanti) { this.minPartecipanti = minPartecipanti; }
+
     public void setMaxPartecipanti(int maxPartecipanti) {
         this.maxPartecipanti = maxPartecipanti;
     }
@@ -71,8 +74,8 @@ public class EventRepository {
      * @return <code>true</code> se l'evento è stato aggiunto, <code>false</code> altrimenti
      */
     public boolean inserimento(JdbcTemplate jdbcTemplate) {
-        return jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `maxPartecipanti`, `emailOrganizzatore`) " +
-                "VALUES (NULL, " + this.categoria + ", '" + this.titolo + "', '" + this.descrizione + "', '" + this.citta + "', '" + this.via + "', '" + this.data + "', '" + this.oraInizio + "', '" + this.oraFine + "', " + this.prezzo + ", " + this.maxPartecipanti + ", '" + this.emailOrganizzatore + "')") == 1;
+        return jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `minPartecipanti`, `maxPartecipanti`, `emailOrganizzatore`) " +
+                "VALUES (NULL, " + this.categoria + ", '" + this.titolo + "', '" + this.descrizione + "', '" + this.citta + "', '" + this.via + "', '" + this.data + "', '" + this.oraInizio + "', '" + this.oraFine + "', " + this.prezzo + ", "+this.minPartecipanti+" , "+ this.maxPartecipanti + ", '" + this.emailOrganizzatore + "')") == 1;
     }
 
 
@@ -95,7 +98,7 @@ public class EventRepository {
      * @return lista dei dati degli eventi presenti
      */
     public List<Map<String, Object>> getEventi(JdbcTemplate jdbcTemplate){
-        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb`");
+        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE confermato = 0");
     }
 
 
