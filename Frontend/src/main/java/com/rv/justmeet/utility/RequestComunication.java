@@ -12,8 +12,12 @@ import java.nio.charset.StandardCharsets;
 
 import static com.rv.justmeet.utility.IOUtility.printer;
 
-
-public class RequestComunication {
+/**
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
+ *
+ * Classe utilizzata per effetuare richieste REST sul server
+ */
+public class RequestComunication implements RequestComunicationInterface{
     private static RequestComunication instance = null;
 
     private RequestComunication() {
@@ -31,13 +35,6 @@ public class RequestComunication {
     }
 
 
-    /**
-     * Consente di effettuare un metodo post per inviare dati al server
-     *
-     * @param path       indirizzo al quale effettuare la richiesta
-     * @param method     tipo di metodo http da eseguire
-     * @param parameters parametri da inviare DA SCRIVERE SOTTO DOMRA DI STRINGA JSON
-     */
     public String restRequest(String path, String method, String parameters) {
         try {
             URL url = new URL(BackendConnection.getInstance().getDomain() + path);

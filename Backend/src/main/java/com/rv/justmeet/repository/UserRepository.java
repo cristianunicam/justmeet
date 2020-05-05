@@ -151,8 +151,15 @@ public class UserRepository {
         return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test@unicam.it'") == 1;
     }
 
+
+    /**
+     * Metodo utilizzato dopo l'esecuzione dei test da parte del frontend.
+     * Permette di eliminare gli utenti creati durante l'esecuzione dei vari test.
+     *
+     * @return boolean true se gli utenti sono stati eliminati, false altrimenti
+     */
     public boolean eliminaTest2(JdbcTemplate jdbcTemplate){
-        return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test1@unicam.it' OR email = 'test2@unicam.it'") == 1;
+        return jdbcTemplate.update("DELETE FROM userdb WHERE email = 'test1@unicam.it' OR email = 'test2@unicam.it'") == 2;
     }
     /**
      * Metodo che ritorna i dati di un utente data la sua mail
@@ -164,6 +171,15 @@ public class UserRepository {
         return jdbcTemplate.queryForList("SELECT email,nome,cognome,eta FROM userdb WHERE email = '"+emailUtente+"'");
     }
 
+
+    /**
+     * Metodo per la modifica di un campo di un utente
+     *
+     * @param emailUtente email dell'utente del quale si vuole modificare un campo
+     * @param nomeCampo nome del campo che si vuole modificare
+     * @param valoreDaModificare valore aggiornato del dato campo
+     * @return true se il campo è stato modificato, false altrimenti
+     */
     public boolean modifica(String emailUtente, String nomeCampo, String valoreDaModificare, JdbcTemplate jdbcTemplate) {
         return jdbcTemplate.update("UPDATE `userdb` SET "+nomeCampo+" = '"+valoreDaModificare+"' WHERE `userdb`.`email` = '"+emailUtente+"'") == 1;
     }

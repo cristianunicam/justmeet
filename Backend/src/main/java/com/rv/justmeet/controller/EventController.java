@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Classe controller di un evento
  *
- * @author Cristian Verdecchia, Lorenzo Romagnoli
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
 @RestController
 @RequestMapping(path="/eventi")

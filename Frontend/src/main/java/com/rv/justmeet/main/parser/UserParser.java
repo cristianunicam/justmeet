@@ -11,6 +11,9 @@ import java.util.Map;
 
 import static com.rv.justmeet.utility.IOUtility.printer;
 
+/**
+ * @author Cristian Verdecchia, Lorenzo Romagnoli
+ */
 public class UserParser {
     private static UserParser instance = null;
 
@@ -20,6 +23,12 @@ public class UserParser {
         return instance;
     }
 
+    /**
+     * Effettua il parse dei dati di un utente
+     *
+     * @param jsonString stringa in formato json da cui effettuare il parse
+     * @return la lista dei dati dell'utente
+     */
     public List<String> parseDatiUtente(String jsonString){
         String[] campi = {"email" , "nome" , "cognome" , "eta"};
         List<String> dati = new ArrayList<>();
@@ -36,6 +45,13 @@ public class UserParser {
         return dati;
     }
 
+
+    /**
+     * Effettua il parse delle email degli utenti partecipanti ad un evento
+     *
+     * @param jsonString stringa in formato json da cui effettuare il parse
+     * @return Map contenente le email degli utenti
+     */
     public Map<Integer , String> parsePartecipanti(String jsonString){
         Map<Integer , String> partecipanti = new HashMap<>();
         try {

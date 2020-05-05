@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
+/**
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
+ *
+ * Classe di utility che fornisce metodi di input/output
+ */
 public class IOUtility {
     public static Consumer<String> printer = System.out::println;
     public static BufferedReader stringReader = new BufferedReader(new InputStreamReader(System.in));
@@ -182,6 +187,26 @@ public class IOUtility {
         } catch (IOException e) {
             printer.accept(e.getMessage());
             return getString();
+        }
+    }
+
+    /**
+     * Elimina le stampe effettate su riga di comando in base al tipo di sistema operativo in utilizzo
+     */
+    public static void clearScreen() {
+        try {
+            final String os = System.getProperty("os.name");
+            if (os.contains("Windows"))
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            else {
+                printer.accept("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (IOException | InterruptedException e) {
+            printer.accept(e.getMessage());
+        } catch (SecurityException e) {
+            printer.accept("\033[H\033[2J");
+            System.out.flush();
         }
     }
 }

@@ -17,9 +17,9 @@ import static com.rv.justmeet.utility.IOUtility.*;
 /**
  * @author Cristian Verdecchia, Lorenzo Romagnoli
  * <p>
- * Classe Singleton che gestisce le azioni relaive agli eventi
+ * Classe che gestisce le azioni relative agli eventi
  */
-public class EventManager {
+public class EventManager implements EventManagerInterface{
     private static EventManager instance = null;
     private final Map<String, Supplier<?>> campiEvento = new HashMap<>();
     private final String[] campiDatabaseModificabili = {
@@ -29,8 +29,8 @@ public class EventManager {
             "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero minimo partecipanti","Numero massimo partecipanti"
     };
 
-    private EventManager() {
-    }
+    private EventManager() {}
+
 
     public static EventManager getInstance() {
         if (instance == null) {
@@ -40,12 +40,19 @@ public class EventManager {
         return instance;
     }
 
+
+    /**
+     * Metodo che fornisce il path per le richieste rest relative agli eventi
+     *
+     * @return il path relativo agli eventi
+     */
     private static String getDomain() {
         return "/eventi";
     }
 
+
     /**
-     * Inizializzazione HashMap che conterrà i metodi per l'inserimento dei dati di un evento
+     * Inizializza l'HashMap che conterrà i metodi per l'inserimento dei dati di un evento
      */
     private void mapInit() {
         campiEvento.put("titolo", () -> inserisciStringa("il titolo", 10, 50));
@@ -63,9 +70,7 @@ public class EventManager {
                 "numero massimo partecipanti", 2, 100000, "Il numero di partecipanti deve essere compreso tra 2 e 100000"));
     }
 
-    /**
-     * Permette di creare un evento che verra' inserito in bacheca e salvato nel database
-     */
+
     public void aggiungiEvento() {
         HashMap<String, String> json = new HashMap<>();
         json.put("categoria", Integer.toString(inserisciCategoriaEvento()));
@@ -92,11 +97,6 @@ public class EventManager {
     }
 
 
-    /**
-     * Metodo per la modifica di un evento
-     *
-     * @param idEvento id dell'evento che si vuole modificare
-     */
     public void modificaEvento(int idEvento) {
         String campoModificato;
         //Mostra tutti i campi modificabili
@@ -134,12 +134,12 @@ public class EventManager {
 
 
     /**
-     * Ritorna la stringa contente i campi in json con i nomi dei rispettivi campi
+     * Formatta il campo dell'evento da modificare in una stringa json che potrà essere inviata al server
      *
      * @param campoModificato valore del campo modificato
      * @param nomeCampo nome del campo da voler modificare
      * @param idEvento id dell'evento nel quale si vuole modificare un determinato campo
-     * @return codice json dati i parametri passati
+     * @return i campi passati , formattati in una stringa json
      */
     private String getJsonModificaEvento(String campoModificato, String nomeCampo, int idEvento) {
         HashMap<String, String> json = new HashMap<>();
@@ -152,9 +152,7 @@ public class EventManager {
     }
 
 
-    /**
-     * Metodo per annullare un evento
-     */
+
     public void annullaEvento(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/annulla/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null

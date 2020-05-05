@@ -14,22 +14,18 @@ import static com.rv.justmeet.utility.IOUtility.*;
 
 
 /**
- * Classe singleton che gestisce un utente registrato o non
+ * Classe che gestisce un utente registrato o non
  *
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
-public class UserManager {
+public class UserManager implements UserManagerInterface {
     private static final String[] campiUtente = {"email", "password", "nome", "cognome", "eta"};
     private static UserManager instance = null;
 
     private UserManager() {
     }
 
-    /**
-     * Metodo che ritorna l'instanza della classe
-     *
-     * @return Instanza della classe
-     */
+
     public static UserManager getInstance() {
         if (instance == null)
             instance = new UserManager();
@@ -37,10 +33,6 @@ public class UserManager {
     }
 
 
-    /**
-     * Metodo che permette all'utente di effettuare il login salvando i suoi
-     * dati di accesso.
-     */
     public boolean login() {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
@@ -55,10 +47,7 @@ public class UserManager {
     }
 
 
-    /**
-     * Permettere all'utente di inserire i suoi dati per effettuare
-     * la registrazione
-     */
+
     public void registra() {
         HashMap<String, String> json = new HashMap<>();
         json.put(campiUtente[0], inserimentoEmailRegistrazione());
@@ -86,9 +75,7 @@ public class UserManager {
     }
 
 
-    /**
-     * Permette di scegliere un evento a cui partecipare. Salvando poi la partecipazione nel database
-     */
+
     public void partecipaEvento(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 "/utente/partecipa/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
@@ -103,11 +90,7 @@ public class UserManager {
     }
 
 
-    /**
-     * Metodo per annullare la partecipazione ad un evento
-     *
-     * @param idEvento id dell'evento del quale si vuole annullare la partecipazione
-     */
+
     public void annullaPartecipazione(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 "/utente/annullapartecipazione/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
@@ -120,7 +103,7 @@ public class UserManager {
 
 
     /**
-     * Metodo inserimento e controllo email durante la registrazione
+     * Metodo per l'inserimento e controllo dell'email durante la registrazione
      *
      * @return email utente
      */
@@ -219,7 +202,11 @@ public class UserManager {
             printer.accept("Errore nell'esecuzione della query, modifica non effettuata");
     }
 
-
+    /**
+     * Metodo che fornisce il path per le richieste rest relative agli utenti
+     *
+     * @return il path relativo agli utenti
+     */
     private String getDomain() {
         return "/utente/";
     }

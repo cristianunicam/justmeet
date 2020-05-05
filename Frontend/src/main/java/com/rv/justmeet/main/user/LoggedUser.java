@@ -5,11 +5,11 @@ import com.rv.justmeet.exceptions.LoggedUserDoesNotExistsException;
 import static com.rv.justmeet.utility.IOUtility.printer;
 
 /**
- * Classe contente i dati a seguito di una connessione dell'utente al database
+ * Classe contente i dati dell'utente che ha effettuato con successo il login
  *
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
-public class LoggedUser {
+public class LoggedUser implements LoggedUserInterface {
     private static LoggedUser instance = null;
     private final String email;
 
@@ -45,20 +45,13 @@ public class LoggedUser {
         return instance;
     }
 
-    /**
-     * Scollega l'utente cancellando l'instanza di questa classe
-     */
-    public static void logout() {
+
+    public void logout() {
         instance = null;
     }
 
-    /**
-     * Ritorna l'email dell'utente
-     *
-     * @return string email dell'utente loggato
-     */
+
     public String getEmail() {
         return email;
     }
-
 }

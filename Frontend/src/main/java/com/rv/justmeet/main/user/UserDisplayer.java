@@ -11,9 +11,20 @@ import java.util.Map;
 
 import static com.rv.justmeet.utility.IOUtility.getString;
 import static com.rv.justmeet.utility.IOUtility.printer;
+import static com.rv.justmeet.utility.IOUtility.clearScreen;
 
+/**
+ * @author Cristian Verdecchia, Lorenzo Romagnoli
+ *
+ * Classe di utility che fornisce metodi per la stampa dei profili degli utenti e per i relativi menu
+ */
 public class UserDisplayer {
 
+    /**
+     * Permette all'utente di scegliere un utente di cui poi visualizzarne il profilo
+     *
+     * @param utenti Map contenente le email degli utenti da poter visualizzare
+     */
     public static void scegliPartecipante(Map<Integer , String> utenti){
         printer.accept("Inserisci il numero dell'utente da visualizzare.");
         int scelta = IOUtility.scanner.nextInt()-1;
@@ -26,7 +37,11 @@ public class UserDisplayer {
         menuPartecipante(utenti.get(scelta));
     }
 
-
+    /**
+     * Mostra il menu delle possibili azioni che possono essere eseguite guardando il profilo di un'altro utente
+     *
+     * @param emailUtente email dell'utente di cui si sta guardando il profilo
+     */
     public static void menuPartecipante(String emailUtente){
         if(visualizzaProfilo(emailUtente)){
             printer.accept("Nessun utente trovato!");
@@ -42,19 +57,22 @@ public class UserDisplayer {
             case "0":
                 return;
             case "1":
-                SoftwareManager.clearScreen();
-                ReviewManager.visualizzaRecensioni(emailUtente);
+                clearScreen();
+                ReviewManager.getInstance().visualizzaRecensioni(emailUtente);
                 break;
             case "2":
-                SoftwareManager.clearScreen();
-                ReviewManager.scriviRecensione(emailUtente);
+                clearScreen();
+                ReviewManager.getInstance().scriviRecensione(emailUtente);
             default:
-                SoftwareManager.clearScreen();
+                clearScreen();
                 printer.accept("Scelta errata! Riprovare!.\n");
                 menuPartecipante(emailUtente);
         }
     }
 
+    /**
+     * Mostra il menu delle possibili azioni che si possono eseguire guardando il proprio profilo
+     */
     public static void menuUtente(){
         if(visualizzaProfilo(LoggedUser.getInstance().getEmail())) {
             printer.accept("Nessun utente trovato!");
@@ -70,22 +88,25 @@ public class UserDisplayer {
             case "0":
                 return;
             case "1":
-                SoftwareManager.clearScreen();
+                clearScreen();
                 if(UserManager.getInstance().login())
                     menuModificaProfilo();
                 break;
             case "2":
-                SoftwareManager.clearScreen();
-                ReviewManager.visualizzaRecensioni(LoggedUser.getInstance().getEmail());
+                clearScreen();
+                ReviewManager.getInstance().visualizzaRecensioni(LoggedUser.getInstance().getEmail());
                 break;
             default:
-                SoftwareManager.clearScreen();
+                clearScreen();
                 printer.accept("Scelta errata! Riprovare!.\n");
                 menuUtente();
                 break;
         }
     }
 
+    /**
+     * Mostra e permette di scegliere l'informazione del proprio profilo da modificare
+     */
     public static void menuModificaProfilo(){
         printer.accept("\n0) Indietro\n" +
                 "1) Modifica nome\n"+
@@ -97,6 +118,13 @@ public class UserDisplayer {
         System.exit(0);
     }
 
+    /**
+     * Mostra le informazioni relative al profilo di un utente
+     *
+     * @param emailUtente email dell'utetne di cui si vuole visualizzare le informazioni
+     * @return <code>true</code> se e' stato trovato l'utente cercato ,
+     *         <code>false</code> se non e' stato trovato nessun utente data l'email inserita
+     */
     private static boolean visualizzaProfilo(String emailUtente){
         String jsonString = BackendConnection.getInstance().checkAndRequest(
                 "/utente/getprofilo/"+ emailUtente, "GET",null

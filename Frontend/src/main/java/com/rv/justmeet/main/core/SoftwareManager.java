@@ -6,9 +6,8 @@ import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
 import com.rv.justmeet.utility.IOUtility;
-import org.apache.catalina.User;
+import static com.rv.justmeet.utility.IOUtility.clearScreen;
 
-import java.io.IOException;
 
 import static com.rv.justmeet.utility.IOUtility.getString;
 import static com.rv.justmeet.utility.IOUtility.printer;
@@ -18,7 +17,7 @@ import static com.rv.justmeet.utility.IOUtility.printer;
  *
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
-public class SoftwareManager {
+public class SoftwareManager implements SoftwareManagerInterface{
     private static SoftwareManager instance = null;
 
     private SoftwareManager() {
@@ -30,30 +29,7 @@ public class SoftwareManager {
         return instance;
     }
 
-    /**
-     * "Pulisce" lo schermo in base al tipo di sistema operativo in utilizzo
-     */
-    public static void clearScreen() {
-        try {
-            final String os = System.getProperty("os.name");
-            if (os.contains("Windows"))
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            else {
-                printer.accept("\033[H\033[2J");
-                System.out.flush();
-            }
-        } catch (IOException | InterruptedException e) {
-            printer.accept(e.getMessage());
-        } catch (SecurityException e) {
-            printer.accept("\033[H\033[2J");
-            System.out.flush();
-        }
-    }
 
-    /**
-     * Metodo che inizializza la connessione con il database
-     * ed esegue l'inizializzazione dell'utente
-     */
     public void inizializzaSoftware() {
         BackendConnection.getInstance();
         this.inizializzaUtente();
@@ -114,7 +90,7 @@ public class SoftwareManager {
 
         switch (getString()) {
             case "0":
-                LoggedUser.logout();
+                LoggedUser.getInstance().logout();
                 clearScreen();
                 inizializzaUtente();
                 break;

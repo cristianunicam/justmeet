@@ -15,10 +15,24 @@ import static com.rv.justmeet.utility.IOUtility.printer;
 import java.util.HashMap;
 import java.util.List;
 
-public class ReviewManager {
+/**
+ * @author Cristian Verdecchia, Lorenzo Romagnoli
+ *
+ * Classe Singleton che gestisce le azioni relative alle recensioni degli utenti
+ */
+public class ReviewManager implements ReviewManagerInterface{
+
+    private static ReviewManager instance = null;
+    private ReviewManager(){}
+
+    public static ReviewManager getInstance(){
+        if(instance == null)
+            instance = new ReviewManager();
+        return instance;
+    }
 
 
-    public static void scriviRecensione(String emailUtente){
+    public void scriviRecensione(String emailUtente){
         HashMap<String, String> json = new HashMap<>();
         json.put("emailRecensore", LoggedUser.getInstance().getEmail());
         json.put("emailRecensito", emailUtente);
@@ -38,7 +52,7 @@ public class ReviewManager {
 
 
 
-    public static void visualizzaRecensioni(String emailUtente){
+    public void visualizzaRecensioni(String emailUtente){
         String jsonString = BackendConnection.getInstance().checkAndRequest(
                 getDomain()+"/visualizzarecensioni/"+ emailUtente, "GET",null
         );
@@ -55,6 +69,11 @@ public class ReviewManager {
         }
     }
 
-    private static String getDomain(){ return "/recensioni";}
+    /**
+     * Metodo che fornisce il path per le richieste rest relative alle recensioni
+     *
+     * @return il path relativo alle recensioni
+     */
+    private String getDomain(){ return "/recensioni";}
 
 }

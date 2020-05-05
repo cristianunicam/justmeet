@@ -9,6 +9,9 @@ import java.util.List;
 
 import static com.rv.justmeet.utility.IOUtility.printer;
 
+/**
+ * @author Cristian Verdecchia, Lorenzo Romagnoli
+ */
 public class ReviewParser {
     private static ReviewParser instance = null;
 
@@ -18,6 +21,12 @@ public class ReviewParser {
         return instance;
     }
 
+    /**
+     * Effettua il parse delle recensioni da un stringa json
+     *
+     * @param jsonString la stringa da cui effettuare il parse
+     * @return la lista delle informazioni delle recensioni
+     */
     public List<String> parseRecensioni(String jsonString){
         String[] campi = {"emailRecensore" , "emailRecensito" , "voto" , "descrizione"};
 
