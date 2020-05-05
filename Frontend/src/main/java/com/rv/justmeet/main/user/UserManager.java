@@ -37,7 +37,7 @@ public class UserManager implements UserManagerInterface {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
         //Utente corrispondente ai dati inseriti presente nel database
-        String response = RequestComunication.getInstance().restRequest(getDomain() + "login", "POST",
+        String response = BackendConnection.getInstance().checkAndRequest(getDomain() + "login", "POST",
                 "{ \"email\":\"" + datiLogin.email + "\", \"password\":\"" + datiLogin.password + "\"}");
         if (Parser.getInstance().parseSuccess(response))
             LoggedUser.getInstance(datiLogin.getEmail());
@@ -46,7 +46,10 @@ public class UserManager implements UserManagerInterface {
         return true;
     }
 
-
+    public void logout(){
+        LoggedUser.getInstance().logout();
+        printer.accept("L'utente è stato disconnesso!");
+    }
 
     public void registra() {
         HashMap<String, String> json = new HashMap<>();
@@ -66,7 +69,7 @@ public class UserManager implements UserManagerInterface {
                 printer.accept("Risposta non accettata! Riprovare!");
         }
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
+        String response = BackendConnection.getInstance().checkAndRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Registrazione effettuata!");
         else
@@ -188,15 +191,15 @@ public class UserManager implements UserManagerInterface {
             }
             if(!uguali)
                 printer.accept("I campi inseriti non coincidono! Riprovare!");
-
         }while(!uguali);
 
 
-        String risultato = RequestComunication.getInstance().restRequest(
+        if(Parser.getInstance().parseSuccess(
+                RequestComunication.getInstance().restRequest(
                 getDomain()+"modifica/"+LoggedUser.getInstance().getEmail()+":"+nomeCampo+":"+(campoModificato == null ? eta : campoModificato),"GET",null
-        );
-
-        if(Parser.getInstance().parseSuccess(risultato))
+                )
+            )
+        )
             printer.accept("La modifica è stata effettuata");
         else
             printer.accept("Errore nell'esecuzione della query, modifica non effettuata");

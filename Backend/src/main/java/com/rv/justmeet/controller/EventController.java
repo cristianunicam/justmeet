@@ -90,5 +90,4 @@ public class EventController {
     public List<Map<String,Object>> getPartecipanti(@PathVariable("idevento") int idEvento){
         return eventi.getPartecipanti(jdbcTemplate,idEvento);
     }
-
 }

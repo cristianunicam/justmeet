@@ -20,8 +20,7 @@ import static com.rv.justmeet.utility.IOUtility.printer;
 public class RequestComunication implements RequestComunicationInterface{
     private static RequestComunication instance = null;
 
-    private RequestComunication() {
-    }
+    private RequestComunication() { }
 
     /**
      * Ritorna l'istanza di questa classe

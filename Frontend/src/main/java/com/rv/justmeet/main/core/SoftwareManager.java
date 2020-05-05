@@ -56,7 +56,7 @@ public class SoftwareManager implements SoftwareManagerInterface{
                     if (!UserManager.getInstance().login())
                         inizializzaUtente();
                     else
-                        gestioneBacheca();
+                        menuIniziale();
                     clearScreen();
                     break;
                 case "2":
@@ -75,7 +75,7 @@ public class SoftwareManager implements SoftwareManagerInterface{
      * Metodo che stampa il menù ed esegue i vari metodi al suo interno in base
      * alla scelta dell'utente
      */
-    private void gestioneBacheca() {
+    private void menuIniziale() {
         printer.accept(
                 "\n0) Logout\n" + "" +
                         "1) Per inserire un nuovo evento\n" +
@@ -90,8 +90,8 @@ public class SoftwareManager implements SoftwareManagerInterface{
 
         switch (getString()) {
             case "0":
-                LoggedUser.getInstance().logout();
                 clearScreen();
+                UserManager.getInstance().logout();
                 inizializzaUtente();
                 break;
             case "1":
@@ -125,7 +125,7 @@ public class SoftwareManager implements SoftwareManagerInterface{
                 );
                 break;
         }
-        gestioneBacheca();
+        menuIniziale();
 
     }
 }
