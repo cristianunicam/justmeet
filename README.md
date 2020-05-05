@@ -23,9 +23,9 @@ Nello sviluppo dell’applicazione sarà necessario focalizzarsi e definire la l
 
 <h2>Utilizzo:</h2>
 <h3>Avvio backend</h3>
-<br><code>gradlew bootRun</code>
+<code>gradlew bootRun</code>
 <br><h3>Avvio Frontend </h3>
-<br><code>gradlew run</code> 
+<code>gradlew run</code> 
 <br> A questo punto sarà possibile utilizzare il programma.
 
 PS: Prima di avviare il backend è necessario avere implementato un database, per fare questo si può importare la struttura del database inserita nel path justmeet/backend/justmeet.sql
