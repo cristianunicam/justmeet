@@ -3,9 +3,11 @@ package com.rv.justmeet.main.core;
 import com.rv.justmeet.main.event.EventDisplayer;
 import com.rv.justmeet.main.event.EventManager;
 import com.rv.justmeet.main.user.LoggedUser;
+import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
+import com.rv.justmeet.utility.IOUtility;
+import static com.rv.justmeet.utility.IOUtility.clearScreen;
 
-import java.io.IOException;
 
 import static com.rv.justmeet.utility.IOUtility.getString;
 import static com.rv.justmeet.utility.IOUtility.printer;
@@ -15,7 +17,7 @@ import static com.rv.justmeet.utility.IOUtility.printer;
  *
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
-public class SoftwareManager {
+public class SoftwareManager implements SoftwareManagerInterface{
     private static SoftwareManager instance = null;
 
     private SoftwareManager() {
@@ -27,31 +29,9 @@ public class SoftwareManager {
         return instance;
     }
 
-    /**
-     * "Pulisce" lo schermo in base al tipo di sistema operativo in utilizzo
-     */
-    public static void clearScreen() {
-        try {
-            final String os = System.getProperty("os.name");
-            if (os.contains("Windows"))
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            else {
-                printer.accept("\033[H\033[2J");
-                System.out.flush();
-            }
-        } catch (IOException | InterruptedException e) {
-            printer.accept(e.getMessage());
-        } catch (SecurityException e) {
-            printer.accept("\033[H\033[2J");
-            System.out.flush();
-        }
-    }
 
-    /**
-     * Metodo che inizializza la connessione con il database
-     * ed esegue l'inizializzazione dell'utente
-     */
     public void inizializzaSoftware() {
+        clearScreen();
         BackendConnection.getInstance();
         this.inizializzaUtente();
     }
@@ -61,7 +41,6 @@ public class SoftwareManager {
      */
     private void inizializzaUtente() {
         while (true) {
-            clearScreen();
             printer.accept(
                     "0) Per uscire dal programma\n" +
                             "1) Per effetturare il login \n" +
@@ -77,12 +56,12 @@ public class SoftwareManager {
                     if (!UserManager.getInstance().login())
                         inizializzaUtente();
                     else
-                        gestioneBacheca();
+                        menuIniziale();
                     clearScreen();
                     break;
                 case "2":
-                    UserManager.getInstance().registra();
                     clearScreen();
+                    UserManager.getInstance().registra();
                     break;
                 default:
                     printer.accept("Scelta errata, riprovare: ");
@@ -96,7 +75,7 @@ public class SoftwareManager {
      * Metodo che stampa il menù ed esegue i vari metodi al suo interno in base
      * alla scelta dell'utente
      */
-    private void gestioneBacheca() {
+    private void menuIniziale() {
         printer.accept(
                 "\n0) Logout\n" + "" +
                         "1) Per inserire un nuovo evento\n" +
@@ -104,13 +83,15 @@ public class SoftwareManager {
                         "3) Per visualizzare un determinato evento o modificarlo\n" +
                         "4) Per visualizzare la lista degli eventi pubblicati\n" +
                         "5) Per visualizzare la lista degli eventi ai quali si partecipa\n" +
+                        "6) Visualizza il tuo profilo\n"+
+                        "7) Per visualizzare il profilo di un altro utente\n"+
                         "Inserisci la tua scelta: "
         );
 
         switch (getString()) {
             case "0":
-                LoggedUser.logout();
                 clearScreen();
+                UserManager.getInstance().logout();
                 inizializzaUtente();
                 break;
             case "1":
@@ -133,8 +114,18 @@ public class SoftwareManager {
                 clearScreen();
                 EventDisplayer.visualizzaPartecipazioneEventi();
                 break;
+            case "6":
+                clearScreen();
+                UserDisplayer.menuUtente();
+                break;
+            case "7":
+                clearScreen();
+                UserDisplayer.menuPartecipante(
+                        IOUtility.inserisciStringa("email utente da cercare",5 , 50)
+                );
+                break;
         }
-        gestioneBacheca();
+        menuIniziale();
 
     }
 }

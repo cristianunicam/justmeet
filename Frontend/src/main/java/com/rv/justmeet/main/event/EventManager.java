@@ -17,20 +17,20 @@ import static com.rv.justmeet.utility.IOUtility.*;
 /**
  * @author Cristian Verdecchia, Lorenzo Romagnoli
  * <p>
- * Classe Singleton che gestisce le azioni relaive agli eventi
+ * Classe che gestisce le azioni relative agli eventi
  */
-public class EventManager {
+public class EventManager implements EventManagerInterface{
     private static EventManager instance = null;
     private final Map<String, Supplier<?>> campiEvento = new HashMap<>();
     private final String[] campiDatabaseModificabili = {
-            "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti"
+            "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo","minPartecipanti", "maxPartecipanti"
     };
     private final String[] campiEventoModificabili = {
-            "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero massimo partecipanti"
+            "Titolo", "Descrizione", "Citta'", "Via", "Data", "Ora inizio", "Ora fine", "Prezzo", "Numero minimo partecipanti","Numero massimo partecipanti"
     };
 
-    private EventManager() {
-    }
+    private EventManager() {}
+
 
     public static EventManager getInstance() {
         if (instance == null) {
@@ -40,12 +40,19 @@ public class EventManager {
         return instance;
     }
 
+
+    /**
+     * Metodo che fornisce il path per le richieste rest relative agli eventi
+     *
+     * @return il path relativo agli eventi
+     */
     private static String getDomain() {
         return "/eventi";
     }
 
+
     /**
-     * Inizializzazione HashMap che conterrà i metodi per l'inserimento dei dati di un evento
+     * Inizializza l'HashMap che conterrà i metodi per l'inserimento dei dati di un evento
      */
     private void mapInit() {
         campiEvento.put("titolo", () -> inserisciStringa("il titolo", 10, 50));
@@ -56,13 +63,14 @@ public class EventManager {
         campiEvento.put("oraInizio", () -> inserisciOra("inizio"));
         campiEvento.put("oraFine", () -> inserisciOra("fine"));
         campiEvento.put("prezzo", () -> inserisciFloat("prezzo"));
+        campiEvento.put("minPartecipanti", () -> inserisciInt(
+                "numero minimo di partecipanti affinche' l'evento possa esserci",0, 50000,"Il numero minimo di partecipanti deve essere maggiore di 0"
+        ));
         campiEvento.put("maxPartecipanti", () -> inserisciInt(
                 "numero massimo partecipanti", 2, 100000, "Il numero di partecipanti deve essere compreso tra 2 e 100000"));
     }
 
-    /**
-     * Permette di creare un evento che verra' inserito in bacheca e salvato nel database
-     */
+
     public void aggiungiEvento() {
         HashMap<String, String> json = new HashMap<>();
         json.put("categoria", Integer.toString(inserisciCategoriaEvento()));
@@ -74,27 +82,21 @@ public class EventManager {
         json.put("oraInizio", (String) campiEvento.get("oraInizio").get());
         json.put("oraFine", (String) campiEvento.get("oraFine").get());
         json.put("prezzo", campiEvento.get("prezzo").get().toString());
+        json.put("minPartecipanti",campiEvento.get("minPartecipanti").get().toString());
         json.put("maxPartecipanti", campiEvento.get("maxPartecipanti").get().toString());
         json.put("emailOrganizzatore", LoggedUser.getInstance().getEmail());
-
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restRequest(
+        String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/inserimento", "POST", gson.toJson(json)
         );
-
+        clearScreen();
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Evento inserito!");
         else
             printer.accept("Evento non inserito!");
-
     }
 
 
-    /**
-     * Metodo per la modifica di un evento
-     *
-     * @param idEvento id dell'evento che si vuole modificare
-     */
     public void modificaEvento(int idEvento) {
         String campoModificato;
         //Mostra tutti i campi modificabili
@@ -113,31 +115,31 @@ public class EventManager {
                 nomeCampo = campiDatabaseModificabili[campoDaModificare - 1];
                 //Informazioni del campo modificato
                 printer.accept("Inserisci le nuove informazioni del campo: ");
-                campoModificato = "\"" + campiEvento.get(nomeCampo).get() + "\"";
+                campoModificato = campiEvento.get(nomeCampo).get().toString();
             } else
                 throw new FieldToModifyDoesNotExistsException();
         } catch (FieldToModifyDoesNotExistsException e) {
             printer.accept(e.getMessage());
             return;
         }
-        String response = RequestComunication.getInstance().restRequest(
+        String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/modifica", "POST", getJsonModificaEvento(campoModificato, nomeCampo, idEvento)
         );
 
         if (Parser.getInstance().parseSuccess(response))
-            printer.accept("L'evento è stato modificato!");
+            printer.accept("L'evento e' stato modificato!");
         else
             printer.accept("L'evento non è stato modificato!");
     }
 
 
     /**
-     * Ritorna la stringa contente i campi in json con i nomi dei rispettivi campi
+     * Formatta il campo dell'evento da modificare in una stringa json che potrà essere inviata al server
      *
      * @param campoModificato valore del campo modificato
      * @param nomeCampo nome del campo da voler modificare
      * @param idEvento id dell'evento nel quale si vuole modificare un determinato campo
-     * @return codice json dati i parametri passati
+     * @return i campi passati , formattati in una stringa json
      */
     private String getJsonModificaEvento(String campoModificato, String nomeCampo, int idEvento) {
         HashMap<String, String> json = new HashMap<>();
@@ -150,9 +152,7 @@ public class EventManager {
     }
 
 
-    /**
-     * Metodo per annullare un evento
-     */
+
     public void annullaEvento(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/annulla/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null

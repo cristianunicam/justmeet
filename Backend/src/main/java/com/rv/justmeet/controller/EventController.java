@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Classe controller di un evento
  *
- * @author Cristian Verdecchia, Lorenzo Romagnoli
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
 @RestController
 @RequestMapping(path="/eventi")
@@ -83,5 +83,11 @@ public class EventController {
     @ResponseBody
     public Map<String, Boolean> isOrganizzatore(@PathVariable("emailutente") String emailUtente, @PathVariable("idevento") int idEvento){
         return Collections.singletonMap("success",eventi.isOrganizzatore(jdbcTemplate, emailUtente,idEvento));
+    }
+
+    @GetMapping(value = "/getpartecipanti/{idevento}")
+    @ResponseBody
+    public List<Map<String,Object>> getPartecipanti(@PathVariable("idevento") int idEvento){
+        return eventi.getPartecipanti(jdbcTemplate,idEvento);
     }
 }

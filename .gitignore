@@ -19,7 +19,7 @@ build/
 *.iws
 *.iml
 *.ipr
-out/
+out/artifacts/Frontend_jar/META-INF
 
 ### NetBeans ###
 /nbproject/private/

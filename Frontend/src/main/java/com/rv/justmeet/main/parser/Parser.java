@@ -5,6 +5,9 @@ import org.json.JSONObject;
 
 import static com.rv.justmeet.utility.IOUtility.printer;
 
+/**
+ * @author Cristian Verdecchia, Lorenzo Romagnoli
+ */
 public class Parser {
     private static Parser instance = null;
 
@@ -18,10 +21,10 @@ public class Parser {
     }
 
     /**
-     * Controlla che una stringa json contenga un determinato campo
+     * Controlla che una stringa json contenga un determinato campo che passiamo come parametro
      *
      * @param jsonString la stringa da controllare
-     * @param check il campo del quale controllare la presenza all'interno del codice
+     * @param check il campo del quale controllare la presenza all'interno della stringa json
      * @return <code>true</code> se è presente, <code>false</code> altrimenti
      */
     public boolean parseJsonResponse(String jsonString, String check) {
@@ -30,7 +33,7 @@ public class Parser {
 
 
     /**
-     * Effettua il parse della stringa passata e ritorna il valore
+     * Effettua il parse del campo "success" da una stringa json
      *
      * @param jsonString la stringa della quale effettuare il parse
      * @return <code>true</code> se al campo json "success" è stato

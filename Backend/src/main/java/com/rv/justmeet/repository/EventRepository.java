@@ -1,11 +1,19 @@
 package com.rv.justmeet.repository;
 
+import com.rv.justmeet.controller.EmailController;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.Email;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Classe repository degli eventi, contiene i metodi per la gestione degli eventi
+ * ed inoltre contiene i dati di un evento qualora dovessero venire passati in POST
+ *
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
+ */
 @Component
 public class EventRepository {
     private int categoria;
@@ -17,6 +25,7 @@ public class EventRepository {
     private String oraInizio;
     private String oraFine;
     private float prezzo;
+    private int minPartecipanti;
     private int maxPartecipanti;
     private String emailOrganizzatore;
 
@@ -56,6 +65,8 @@ public class EventRepository {
         this.prezzo = prezzo;
     }
 
+    public void setMinPartecipanti(int minPartecipanti) { this.minPartecipanti = minPartecipanti; }
+
     public void setMaxPartecipanti(int maxPartecipanti) {
         this.maxPartecipanti = maxPartecipanti;
     }
@@ -71,10 +82,8 @@ public class EventRepository {
      * @return <code>true</code> se l'evento è stato aggiunto, <code>false</code> altrimenti
      */
     public boolean inserimento(JdbcTemplate jdbcTemplate) {
-        if(jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `maxPartecipanti`, `emailOrganizzatore`) " +
-                "VALUES (NULL, "+this.categoria+", '"+this.titolo+"', '"+this.descrizione+"', '"+this.citta+"', '"+this.via+"', '"+this.data+"', '"+this.oraInizio+"', '"+this.oraFine+"', "+this.prezzo+", "+this.maxPartecipanti+", '"+ this.emailOrganizzatore+"')") != 1)
-            return false;
-        return true;
+        return jdbcTemplate.update("INSERT INTO `eventsdb` (`id`, `categoria`, `titolo`, `descrizione`, `citta`, `via`, `data`, `oraInizio`, `oraFine`, `prezzo`, `minPartecipanti`, `maxPartecipanti`, `emailOrganizzatore`) " +
+                "VALUES (NULL, " + this.categoria + ", '" + this.titolo + "', '" + this.descrizione + "', '" + this.citta + "', '" + this.via + "', '" + this.data + "', '" + this.oraInizio + "', '" + this.oraFine + "', " + this.prezzo + ", "+this.minPartecipanti+" , "+ this.maxPartecipanti + ", '" + this.emailOrganizzatore + "')") == 1;
     }
 
 
@@ -85,11 +94,21 @@ public class EventRepository {
      * @return <code>true</code> se l'evento è stato modificato, <code>false</code> altrimenti
      */
     public boolean modifica(JdbcTemplate jdbcTemplate, Map<String,Object> payload){
-        if(jdbcTemplate.update("UPDATE `eventsdb` " +
-                "SET "+payload.get("nomeCampo")+" = '"+payload.get("campoModificato")+"' "+
-                "WHERE id = "+payload.get("idEvento")) != 1)
-            return false;
-        return true;
+        List<Map<String,Object>> emailDaNotificare = jdbcTemplate.queryForList(
+                "SELECT emailUtente " +
+                        "FROM partecipantsdb" +
+                        " WHERE idEvento = "+payload.get("idEvento")
+        );
+        List<Map<String,Object>> nomeEvento = jdbcTemplate.queryForList(
+                "SELECT titolo FROM eventsdb" +
+                " WHERE id = "+payload.get("idEvento")
+        );
+        EmailController.notificaUtenti(emailDaNotificare,
+                "Il campo \""+payload.get("nomeCampo")+"\" dell'evento \""+nomeEvento.get(0).get("titolo")+"\" al quale partecipi è stato modificato!"
+        );
+        return jdbcTemplate.update("UPDATE `eventsdb` " +
+                "SET " + payload.get("nomeCampo") + " = '" + payload.get("campoModificato") + "' " +
+                " WHERE id = " + payload.get("idEvento")) == 1;
     }
 
 
@@ -99,7 +118,7 @@ public class EventRepository {
      * @return lista dei dati degli eventi presenti
      */
     public List<Map<String, Object>> getEventi(JdbcTemplate jdbcTemplate){
-        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb`");
+        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE chiuso = 0");
     }
 
 
@@ -110,7 +129,13 @@ public class EventRepository {
      * @return lista contente i dati dell'evento
      */
     public List<Map<String,Object>> getEvento(int id, JdbcTemplate jdbcTemplate) {
-        List<Map<String, Object>> datiEvento = jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE id = "+id);
+        List<Map<String, Object>> datiEvento = jdbcTemplate.queryForList(
+                "SELECT categoriesdb.nome AS categoria, titolo, descrizione, citta, via, data, oraInizio, oraFine, prezzo, maxPartecipanti, emailOrganizzatore " +
+                    "FROM `eventsdb` " +
+                    "JOIN categoriesdb ON categoriesdb.id = eventsdb.categoria "+
+                    "WHERE eventsdb.id = "+id
+
+        );
         if(datiEvento.isEmpty())
             datiEvento.add(0,Map.of("success",Boolean.FALSE));
         return datiEvento;
@@ -153,7 +178,16 @@ public class EventRepository {
      * @param idEvento id dell'evento che si vuole annullare
      * @param emailUtente email dell'utente che vuole annullare l'evento
      */
-    public Boolean annullaEvento(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean annullaEvento(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
+        List<Map<String,Object>> emailDaNotificare = jdbcTemplate.queryForList(
+                "SELECT emailUtente FROM partecipantsdb WHERE idEvento = "+idEvento
+        );
+        List<Map<String,Object>> titoloEvento = jdbcTemplate.queryForList(
+                "SELECT titolo FROM eventsdb WHERE id = "+idEvento
+        );
+        EmailController.notificaUtenti(emailDaNotificare,
+                "L'evento \""+titoloEvento.get(0).get("titolo")+"\" al quale partecipi è stato annullato!"
+        );
         jdbcTemplate.update(
                 "DELETE FROM partecipantsdb " +
                 "WHERE idEvento = "+idEvento);
@@ -189,7 +223,7 @@ public class EventRepository {
      * @param idEvento evento del quale controllare se si è l'organizzatore
      * @return true se l'utente è l'organizzatore dell'evento, false altrimenti
      */
-    public Boolean isPartecipante(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean isPartecipante(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
         return !jdbcTemplate.queryForList("SELECT emailUtente " +
                 "FROM `partecipantsdb` " +
                 "WHERE idEvento = " + idEvento +
@@ -205,11 +239,23 @@ public class EventRepository {
      * @param idEvento evento del quale controllare se si è l'organizzatore
      * @return true se l'utente è l'organizzatore dell'evento, false altrimenti
      */
-    public Boolean isOrganizzatore(JdbcTemplate jdbcTemplate, String emailUtente, int idEvento) {
+    public Boolean isOrganizzatore(JdbcTemplate jdbcTemplate, String emailUtente,final int idEvento) {
         return !jdbcTemplate.queryForList("SELECT emailOrganizzatore " +
                 "FROM `eventsdb` " +
                 "WHERE id = " + idEvento +
                 " AND emailOrganizzatore = '" + emailUtente + "'"
         ).isEmpty();
+    }
+
+
+    /**
+     * Metodo che ritorna la lista di partecipanti ad un dato evento
+     *
+     * @param jdbcTemplate classe utilizzata per effettuare query al database
+     * @param idEvento id dell'evento del quale si vogliono ottenere i partecipanti
+     * @return lista degli partecipanti ad un dato evento
+     */
+    public List<Map<String, Object>> getPartecipanti(JdbcTemplate jdbcTemplate,final int idEvento) {
+        return jdbcTemplate.queryForList("SELECT emailUtente FROM partecipantsdb WHERE idEvento = "+idEvento);
     }
 }

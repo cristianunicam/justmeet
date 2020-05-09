@@ -1,9 +1,11 @@
 package com.rv.justmeet.main.user;
 
 import com.google.gson.Gson;
-import com.rv.justmeet.exceptions.*;
+import com.rv.justmeet.exceptions.AlreadyExistingUser;
+import com.rv.justmeet.exceptions.WrongMailException;
 import com.rv.justmeet.main.core.BackendConnection;
 import com.rv.justmeet.main.parser.Parser;
+import com.rv.justmeet.utility.IOUtility;
 import com.rv.justmeet.utility.RequestComunication;
 
 import java.util.HashMap;
@@ -12,22 +14,18 @@ import static com.rv.justmeet.utility.IOUtility.*;
 
 
 /**
- * Classe singleton che gestisce un utente registrato o non
+ * Classe che gestisce un utente registrato o non
  *
  * @author Lorenzo Romagnoli, Cristian Verdecchia
  */
-public class UserManager {
+public class UserManager implements UserManagerInterface {
     private static final String[] campiUtente = {"email", "password", "nome", "cognome", "eta"};
     private static UserManager instance = null;
 
     private UserManager() {
     }
 
-    /**
-     * Metodo che ritorna l'instanza della classe
-     *
-     * @return Instanza della classe
-     */
+
     public static UserManager getInstance() {
         if (instance == null)
             instance = new UserManager();
@@ -35,30 +33,25 @@ public class UserManager {
     }
 
 
-    /**
-     * Metodo che permette all'utente di effettuare il login salvando i suoi
-     * dati di accesso.
-     */
     public boolean login() {
         //L'utente inserisce i dati di login
         LoginData datiLogin = inserimentoDatiLogin();
         //Utente corrispondente ai dati inseriti presente nel database
-        String response = RequestComunication.getInstance().restRequest(getDomain() + "login", "POST",
+        String response = BackendConnection.getInstance().checkAndRequest(getDomain() + "login", "POST",
                 "{ \"email\":\"" + datiLogin.email + "\", \"password\":\"" + datiLogin.password + "\"}");
-        if (Parser.getInstance().parseSuccess(response)) {
-            //Loggo l'utente
+        if (Parser.getInstance().parseSuccess(response))
             LoggedUser.getInstance(datiLogin.getEmail());
-        } else {
+        else
             return datiLoginErrati();
-        }
+        clearScreen();
         return true;
     }
 
+    public void logout(){
+        LoggedUser.getInstance().logout();
+        printer.accept("L'utente è stato disconnesso!");
+    }
 
-    /**
-     * Permettere all'utente di inserire i suoi dati per effettuare
-     * la registrazione
-     */
     public void registra() {
         HashMap<String, String> json = new HashMap<>();
         json.put(campiUtente[0], inserimentoEmailRegistrazione());
@@ -77,7 +70,8 @@ public class UserManager {
                 printer.accept("Risposta non accettata! Riprovare!");
         }
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
+        String response = BackendConnection.getInstance().checkAndRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
+        clearScreen();
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Registrazione effettuata!");
         else
@@ -86,9 +80,7 @@ public class UserManager {
     }
 
 
-    /**
-     * Permette di scegliere un evento a cui partecipare. Salvando poi la partecipazione nel database
-     */
+
     public void partecipaEvento(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 "/utente/partecipa/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
@@ -103,11 +95,7 @@ public class UserManager {
     }
 
 
-    /**
-     * Metodo per annullare la partecipazione ad un evento
-     *
-     * @param idEvento id dell'evento del quale si vuole annullare la partecipazione
-     */
+
     public void annullaPartecipazione(final int idEvento) {
         String response = BackendConnection.getInstance().checkAndRequest(
                 "/utente/annullapartecipazione/" + LoggedUser.getInstance().getEmail() + ":" + idEvento, "GET",null
@@ -120,7 +108,7 @@ public class UserManager {
 
 
     /**
-     * Metodo inserimento e controllo email durante la registrazione
+     * Metodo per l'inserimento e controllo dell'email durante la registrazione
      *
      * @return email utente
      */
@@ -134,6 +122,7 @@ public class UserManager {
                 String response = BackendConnection.getInstance().checkAndRequest(
                         getDomain() + "controlloemail/" + email, "GET",null
                 );
+
                 if (Parser.getInstance().parseSuccess(response))
                     throw new AlreadyExistingUser();
             }
@@ -168,15 +157,60 @@ public class UserManager {
         printer.accept("Dati d'accesso errati, riprovare? (S/N)");
         while (!(scelta = getString().toUpperCase()).equals("N")) {
             if ("S".equals(scelta)) {
-                login();
-                return true;
-            } else {
+                return login();
+            } else
                 printer.accept("Risposta non accettata! Riprovare!");
-            }
         }
         return false;
     }
 
+
+    public void modificaProfilo(final int sceltaCampo){
+        String nomeCampo = campiUtente[sceltaCampo];
+        String campoModificato = null;
+        int eta = 0;
+        boolean uguali = false;
+
+        do {
+            switch (sceltaCampo) {
+                case 1:
+                    uguali = (campoModificato = IOUtility.inserisciStringa("password", 3, 50)).equals(
+                            IOUtility.inserisciStringa("password",3,50));
+                    break;
+                case 2:
+                    uguali = (campoModificato = IOUtility.inserisciStringa("nome", 3, 30)).equals(
+                            IOUtility.inserisciStringa("nome",3,30));
+                    break;
+                case 3:
+                    uguali = (IOUtility.inserisciStringa("cognome", 3, 30)).equals(
+                            IOUtility.inserisciStringa("cognome",3,30));
+                    break;
+                case 4:
+                    uguali = (eta = IOUtility.inserisciInt("eta'", 14, 100, "l'eta' deve essere maggiore di 14 anni")) ==
+                    IOUtility.inserisciInt("eta' di nuovo", 14, 100, "l'eta' deve essere maggiore di 14 anni");
+                    break;
+            }
+            if(!uguali)
+                printer.accept("I campi inseriti non coincidono! Riprovare!");
+        }while(!uguali);
+
+
+        if(Parser.getInstance().parseSuccess(
+                BackendConnection.getInstance().checkAndRequest(
+                getDomain()+"modifica/"+LoggedUser.getInstance().getEmail()+":"+nomeCampo+":"+(campoModificato == null ? eta : campoModificato),"GET",null
+                )
+            )
+        )
+            printer.accept("La modifica e' stata effettuata");
+        else
+            printer.accept("Errore nell'esecuzione della query, modifica non effettuata");
+    }
+
+    /**
+     * Metodo che fornisce il path per le richieste rest relative agli utenti
+     *
+     * @return il path relativo agli utenti
+     */
     private String getDomain() {
         return "/utente/";
     }

@@ -7,10 +7,19 @@ import com.rv.justmeet.main.parser.EventParser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
+/**
+ * @author Lorenzo Romagnoli, Cristian Verdecchia
+ *
+ * Classe di utility che fornisce metodi di input/output
+ */
 public class IOUtility {
     public static Consumer<String> printer = System.out::println;
     public static BufferedReader stringReader = new BufferedReader(new InputStreamReader(System.in));
@@ -68,22 +77,33 @@ public class IOUtility {
     /**
      * Metodo di utility per l'inserimento di una data da parte dell'utente
      *
-     * @param richiestaCampo, messaggio contestuale che verrà stampato prima di chiedere l'inserimento della data
+     * @param richiestaCampo , messaggio contestuale che verrà stampato prima di chiedere l'inserimento della data
      * @return la data inserita dall'utente sotto forma di stringa
      */
     public static String inserisciData(String richiestaCampo) {
         printer.accept(richiestaCampo);
         final String data;
         try {
-            data = getString();
-            if ((data.length() != 10) || (data.charAt(4) != '-') || (data.charAt(7) != '-')) {
-                throw new WrongDataException();
-            }
-        } catch (WrongDataException e) {
+            checkData( data = getString());
+        }catch (ParseException | WrongDataException e){
             printer.accept(e.getMessage());
             return inserisciData(richiestaCampo);
         }
         return data;
+    }
+
+    /**
+     * Metodo che verifa che la data inserita dall'utente sia valida
+     *
+     * @param data , la data inserita dall'utente
+     */
+    private static void checkData(String data) throws WrongDataException, ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDate dataOggi = LocalDate.now();
+        Date dataEvento = format.parse(data);
+        Date dataSystem = format.parse(dataOggi.toString());
+        if(dataEvento.before(dataSystem))
+            throw new WrongDataException();
     }
 
     /**
@@ -96,15 +116,21 @@ public class IOUtility {
         printer.accept("Inserire ora " + tipo + ": ");
         final String ora;
         try {
-            ora = getString();
-            if ((ora.length() != 5) || (ora.charAt(2) != ':')) {
-                throw new WrongTimeException();
-            }
+            checkOra(ora = getString());
         } catch (WrongTimeException e) {
             printer.accept(e.getMessage());
             return inserisciOra(tipo);
         }
         return ora + ":00";
+    }
+
+    private static void checkOra(String  ora) throws WrongTimeException {
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+        try {
+            format.parse(ora);
+        }catch(ParseException e){
+            throw new WrongTimeException();
+        }
     }
 
     /**
@@ -161,6 +187,26 @@ public class IOUtility {
         } catch (IOException e) {
             printer.accept(e.getMessage());
             return getString();
+        }
+    }
+
+    /**
+     * Elimina le stampe effettate su riga di comando in base al tipo di sistema operativo in utilizzo
+     */
+    public static void clearScreen() {
+        try {
+            final String os = System.getProperty("os.name");
+            if (os.contains("Windows"))
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            else {
+                printer.accept("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (IOException | InterruptedException e) {
+            printer.accept(e.getMessage());
+        } catch (SecurityException e) {
+            printer.accept("\033[H\033[2J");
+            System.out.flush();
         }
     }
 }

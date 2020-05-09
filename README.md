@@ -20,12 +20,3 @@ Gli utenti vengono notificati dal sistema nei casi in cui:
 </ul>
 
 Nello sviluppo dell’applicazione sarà necessario focalizzarsi e definire la lista degli eventi che la piattaforma supporta.
-
-<h2>Utilizzo:</h2>
-<h3>Avvio backend</h3>
-<code>gradlew bootRun</code>
-<br><h3>Avvio Frontend </h3>
-<code>gradlew run</code> 
-<br> A questo punto sarà possibile utilizzare il programma.
-
-<br>PS: Prima di avviare il backend è necessario avere implementato un database, per fare questo si può importare la struttura del database inserita nel path justmeet/backend/justmeet.sql

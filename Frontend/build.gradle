@@ -37,9 +37,11 @@ test{
 }
 
 jar{
+    /*
+    Da utilizzare per la creazione dell'eseguibile
     manifest{
-        attributes "Main-Class": "$mainClassName"
-    }
+        attributes ('Main-Class': 'com.rv.justmeet.JustMeet')
+    }*/
     from{
         configurations.compile.collect {
             it.isDirectory() ? it : zipTree(it)
