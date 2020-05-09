@@ -43,6 +43,7 @@ public class UserManager implements UserManagerInterface {
             LoggedUser.getInstance(datiLogin.getEmail());
         else
             return datiLoginErrati();
+        clearScreen();
         return true;
     }
 
@@ -70,6 +71,7 @@ public class UserManager implements UserManagerInterface {
         }
         Gson gson = new Gson();
         String response = BackendConnection.getInstance().checkAndRequest(getDomain() + "registrazione", "POST", gson.toJson(json));
+        clearScreen();
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Registrazione effettuata!");
         else
@@ -120,6 +122,7 @@ public class UserManager implements UserManagerInterface {
                 String response = BackendConnection.getInstance().checkAndRequest(
                         getDomain() + "controlloemail/" + email, "GET",null
                 );
+
                 if (Parser.getInstance().parseSuccess(response))
                     throw new AlreadyExistingUser();
             }
@@ -154,11 +157,9 @@ public class UserManager implements UserManagerInterface {
         printer.accept("Dati d'accesso errati, riprovare? (S/N)");
         while (!(scelta = getString().toUpperCase()).equals("N")) {
             if ("S".equals(scelta)) {
-                login();
-                return true;
-            } else {
+                return login();
+            } else
                 printer.accept("Risposta non accettata! Riprovare!");
-            }
         }
         return false;
     }
@@ -195,12 +196,12 @@ public class UserManager implements UserManagerInterface {
 
 
         if(Parser.getInstance().parseSuccess(
-                RequestComunication.getInstance().restRequest(
+                BackendConnection.getInstance().checkAndRequest(
                 getDomain()+"modifica/"+LoggedUser.getInstance().getEmail()+":"+nomeCampo+":"+(campoModificato == null ? eta : campoModificato),"GET",null
                 )
             )
         )
-            printer.accept("La modifica è stata effettuata");
+            printer.accept("La modifica e' stata effettuata");
         else
             printer.accept("Errore nell'esecuzione della query, modifica non effettuata");
     }

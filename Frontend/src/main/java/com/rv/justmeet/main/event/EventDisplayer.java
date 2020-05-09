@@ -9,6 +9,7 @@ import com.rv.justmeet.main.user.LoggedUser;
 import com.rv.justmeet.main.user.UserDisplayer;
 import com.rv.justmeet.main.user.UserManager;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class EventDisplayer{
     public static void visualizzaEvento() {
         printer.accept("Inserisci l'ID dell'evento da voler visualizzare: ");
         int eventoDaMostrare;
-        if (((eventoDaMostrare = scanner.nextInt()) < 0)) {
+        if (((eventoDaMostrare = scanner.nextInt()) < 1)) {
             printer.accept("ERRORE, l'ID inserito non fa parte degli id degli eventi presenti!");
             return;
         }
@@ -62,17 +63,14 @@ public class EventDisplayer{
                 getDomain() + "getevento/" + eventoDaMostrare, "GET",null
         );
 
-        if (Parser.getInstance().parseJsonResponse(response, "false")) {
+        if (Parser.getInstance().parseJsonResponse(response, "\"success\":false")) {
             printer.accept("L'evento selezionato non esiste!");
             return;
         }
+
         List<String> evento = EventParser.getInstance().parseEvento(response);
         stampaEvento(evento);
-        //Controllo se l'evento visualizzato è stato pubblicato dall'utente
-        String checkorganizzatore = BackendConnection.getInstance().checkAndRequest(
-                getDomain() + "isorganizzatore/" + LoggedUser.getInstance().getEmail() + ":" + eventoDaMostrare, "GET",null
-        );
-        if (Parser.getInstance().parseSuccess(checkorganizzatore))
+        if(response.contains("\"emailOrganizzatore\":\""+ LoggedUser.getInstance().getEmail() +"\""))
             menuEventoOrganizzatore(eventoDaMostrare);
         else
             menuEventoPartecipante(eventoDaMostrare);
@@ -88,7 +86,7 @@ public class EventDisplayer{
                 getDomain() + "geteventipubblicati/" + LoggedUser.getInstance().getEmail(), "GET",null
         );
 
-        if (response.isEmpty()) {
+        if (response.length()<5) {
             clearScreen();
             printer.accept("Non hai pubblicato ancora alcun evento!");
             return;
@@ -107,7 +105,7 @@ public class EventDisplayer{
         String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "geteventipartecipante/" + LoggedUser.getInstance().getEmail(), "GET",null
         );
-        if (response.isEmpty()) {
+        if (response.length()<5) {
             clearScreen();
             printer.accept("Attualmente non partecipi a nessun evento!");
             return;
@@ -223,18 +221,21 @@ public class EventDisplayer{
      */
     private static void visualizzaPartecipanti(int idEvento){
         String jsonString = BackendConnection.getInstance().checkAndRequest(
-                "/eventi/visualizzapartecipanti/"+ idEvento, "GET",null
+                "/eventi/getpartecipanti/"+ idEvento, "GET",null
         );
         Map<Integer , String> utenti = UserParser.getInstance().parsePartecipanti(jsonString);
 
-        for(int x = 0 ; x< utenti.size() ; x++){
-            printer.accept(x+1+")"+utenti.get(x));
+        if(utenti.size() == 0)
+            printer.accept("Non vi sono partecipanti al dato evento!");
+        else {
+            for (int x = 0; x < utenti.size(); x++)
+                printer.accept(x + 1 + ")" + utenti.get(x));
         }
+
         printer.accept("\n0) Indietro\n" +
                 "1) Visualizza profilo di un partecipante\n" +
                 "Inserisci la tua scelta: "
         );
-
         switch (getString()) {
             case "0":
                 return;

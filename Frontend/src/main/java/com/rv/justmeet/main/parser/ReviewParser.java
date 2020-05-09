@@ -33,8 +33,9 @@ public class ReviewParser {
         List<String> dati = new ArrayList<>();
         try {
             final JSONArray evento = new JSONArray(jsonString);
-            JSONObject jsonObj = evento.getJSONObject(0);
+            JSONObject jsonObj;
             for(int x = 0 ; x < evento.length() ; x++) {
+                jsonObj = evento.getJSONObject(x);
                 for (String s : campi)
                     dati.add(s + ": " + jsonObj.getString(s));
             }

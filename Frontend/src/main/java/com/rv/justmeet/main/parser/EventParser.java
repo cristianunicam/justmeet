@@ -33,7 +33,7 @@ public class EventParser {
      */
     public List<String> parseEvento(String jsonString) {
         String[] campi = {
-                "id", "categoria", "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti", "emailOrganizzatore"
+                "categoria", "titolo", "descrizione", "citta", "via", "data", "oraInizio", "oraFine", "prezzo", "maxPartecipanti", "emailOrganizzatore"
         };
         List<String> dati = new ArrayList<>();
         try {

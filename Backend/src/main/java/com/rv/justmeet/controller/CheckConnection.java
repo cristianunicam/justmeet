@@ -4,6 +4,9 @@ package com.rv.justmeet.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Classe utilizzata per la verifica della connessione
  *
@@ -18,7 +21,7 @@ public class CheckConnection {
      * @return true se la richiesta viene effettuata
      */
     @GetMapping(value="/testconnessione")
-    public boolean checkConnection(){
-        return true;
+    public Map<String, Boolean> checkConnection(){
+        return Collections.singletonMap("success",true);
     }
 }

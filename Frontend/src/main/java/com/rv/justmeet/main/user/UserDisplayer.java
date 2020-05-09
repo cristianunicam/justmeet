@@ -26,6 +26,9 @@ public class UserDisplayer {
      * @param utenti Map contenente le email degli utenti da poter visualizzare
      */
     public static void scegliPartecipante(Map<Integer , String> utenti){
+        if(utenti.size() == 0)
+            return;
+
         printer.accept("Inserisci il numero dell'utente da visualizzare.");
         int scelta = IOUtility.scanner.nextInt()-1;
 
@@ -34,7 +37,10 @@ public class UserDisplayer {
             scegliPartecipante(utenti);
             return;
         }
-        menuPartecipante(utenti.get(scelta));
+        if(LoggedUser.getInstance().getEmail().equals(utenti.get(scelta)))
+            menuUtente();
+        else
+            menuPartecipante(utenti.get(scelta));
     }
 
     /**
@@ -55,6 +61,7 @@ public class UserDisplayer {
 
         switch (getString()) {
             case "0":
+                clearScreen();
                 return;
             case "1":
                 clearScreen();
@@ -63,17 +70,19 @@ public class UserDisplayer {
             case "2":
                 clearScreen();
                 ReviewManager.getInstance().scriviRecensione(emailUtente);
+                break;
             default:
                 clearScreen();
                 printer.accept("Scelta errata! Riprovare!.\n");
-                menuPartecipante(emailUtente);
         }
+        menuPartecipante(emailUtente);
     }
 
     /**
      * Mostra il menu delle possibili azioni che si possono eseguire guardando il proprio profilo
      */
     public static void menuUtente(){
+        clearScreen();
         if(visualizzaProfilo(LoggedUser.getInstance().getEmail())) {
             printer.accept("Nessun utente trovato!");
             return;
@@ -111,11 +120,11 @@ public class UserDisplayer {
         printer.accept("\n0) Indietro\n" +
                 "1) Modifica nome\n"+
                 "2) Modifica cognome\n"+
-                "3) Modifica eta"+
+                "3) Modifica eta\n"+
                 "4) Modifica password\n"
         );
-        UserManager.getInstance().modificaProfilo(IOUtility.scanner.nextInt());
-        System.exit(0);
+        clearScreen();
+        UserManager.getInstance().modificaProfilo(IOUtility.scanner.nextInt()+1);
     }
 
     /**

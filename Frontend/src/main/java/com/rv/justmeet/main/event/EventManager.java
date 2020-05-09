@@ -86,10 +86,10 @@ public class EventManager implements EventManagerInterface{
         json.put("maxPartecipanti", campiEvento.get("maxPartecipanti").get().toString());
         json.put("emailOrganizzatore", LoggedUser.getInstance().getEmail());
         Gson gson = new Gson();
-        String response = RequestComunication.getInstance().restRequest(
+        String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/inserimento", "POST", gson.toJson(json)
         );
-
+        clearScreen();
         if (Parser.getInstance().parseSuccess(response))
             printer.accept("Evento inserito!");
         else
@@ -115,19 +115,19 @@ public class EventManager implements EventManagerInterface{
                 nomeCampo = campiDatabaseModificabili[campoDaModificare - 1];
                 //Informazioni del campo modificato
                 printer.accept("Inserisci le nuove informazioni del campo: ");
-                campoModificato = "\"" + campiEvento.get(nomeCampo).get() + "\"";
+                campoModificato = campiEvento.get(nomeCampo).get().toString();
             } else
                 throw new FieldToModifyDoesNotExistsException();
         } catch (FieldToModifyDoesNotExistsException e) {
             printer.accept(e.getMessage());
             return;
         }
-        String response = RequestComunication.getInstance().restRequest(
+        String response = BackendConnection.getInstance().checkAndRequest(
                 getDomain() + "/modifica", "POST", getJsonModificaEvento(campoModificato, nomeCampo, idEvento)
         );
 
         if (Parser.getInstance().parseSuccess(response))
-            printer.accept("L'evento è stato modificato!");
+            printer.accept("L'evento e' stato modificato!");
         else
             printer.accept("L'evento non è stato modificato!");
     }

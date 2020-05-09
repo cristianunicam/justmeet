@@ -36,7 +36,7 @@ public class RequestComunication implements RequestComunicationInterface{
 
     public String restRequest(String path, String method, String parameters) {
         try {
-            URL url = new URL(BackendConnection.getInstance().getDomain() + path);
+            URL url = new URL(path);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(method);
 

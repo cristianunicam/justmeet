@@ -31,6 +31,7 @@ public class SoftwareManager implements SoftwareManagerInterface{
 
 
     public void inizializzaSoftware() {
+        clearScreen();
         BackendConnection.getInstance();
         this.inizializzaUtente();
     }
@@ -40,7 +41,6 @@ public class SoftwareManager implements SoftwareManagerInterface{
      */
     private void inizializzaUtente() {
         while (true) {
-            clearScreen();
             printer.accept(
                     "0) Per uscire dal programma\n" +
                             "1) Per effetturare il login \n" +
@@ -60,8 +60,8 @@ public class SoftwareManager implements SoftwareManagerInterface{
                     clearScreen();
                     break;
                 case "2":
-                    UserManager.getInstance().registra();
                     clearScreen();
+                    UserManager.getInstance().registra();
                     break;
                 default:
                     printer.accept("Scelta errata, riprovare: ");

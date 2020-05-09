@@ -1,6 +1,7 @@
 package com.rv.justmeet.main.core;
 
 
+import com.rv.justmeet.main.parser.Parser;
 import com.rv.justmeet.utility.RequestComunication;
 
 import static com.rv.justmeet.utility.IOUtility.printer;
@@ -39,12 +40,12 @@ public class BackendConnection implements BackendConnectionInterface{
 
 
     public String checkAndRequest(String path, String method , String parameters) {
-        if (Boolean.parseBoolean(
+        if (Parser.getInstance().parseSuccess(
                 RequestComunication.getInstance().restRequest(
-                        getDomain() + "/testconnessione", "GET" , parameters
+                        getDomain() + "/testconnessione", "GET", null
                 )
         ))
-            return RequestComunication.getInstance().restRequest(path, method , parameters);
+            return RequestComunication.getInstance().restRequest(getDomain()+path, method , parameters);
 
         printer.accept("Connessione fallita!");
         System.exit(-1);

@@ -97,17 +97,18 @@ public class EventRepository {
         List<Map<String,Object>> emailDaNotificare = jdbcTemplate.queryForList(
                 "SELECT emailUtente " +
                         "FROM partecipantsdb" +
-                        "WHERE idEvento = "+payload.get("idEvento")
+                        " WHERE idEvento = "+payload.get("idEvento")
         );
-        List<Map<String,Object>> nomeEvento = jdbcTemplate.queryForList("SELECT titolo FROM eventsdb" +
-                "WHERE id = "+payload.get("idEvento")
+        List<Map<String,Object>> nomeEvento = jdbcTemplate.queryForList(
+                "SELECT titolo FROM eventsdb" +
+                " WHERE id = "+payload.get("idEvento")
         );
         EmailController.notificaUtenti(emailDaNotificare,
                 "Il campo \""+payload.get("nomeCampo")+"\" dell'evento \""+nomeEvento.get(0).get("titolo")+"\" al quale partecipi è stato modificato!"
         );
         return jdbcTemplate.update("UPDATE `eventsdb` " +
                 "SET " + payload.get("nomeCampo") + " = '" + payload.get("campoModificato") + "' " +
-                "WHERE id = " + payload.get("idEvento")) == 1;
+                " WHERE id = " + payload.get("idEvento")) == 1;
     }
 
 
@@ -117,7 +118,7 @@ public class EventRepository {
      * @return lista dei dati degli eventi presenti
      */
     public List<Map<String, Object>> getEventi(JdbcTemplate jdbcTemplate){
-        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE confermato = 0");
+        return jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE chiuso = 0");
     }
 
 
@@ -128,7 +129,13 @@ public class EventRepository {
      * @return lista contente i dati dell'evento
      */
     public List<Map<String,Object>> getEvento(int id, JdbcTemplate jdbcTemplate) {
-        List<Map<String, Object>> datiEvento = jdbcTemplate.queryForList("SELECT * FROM `eventsdb` WHERE id = "+id);
+        List<Map<String, Object>> datiEvento = jdbcTemplate.queryForList(
+                "SELECT categoriesdb.nome AS categoria, titolo, descrizione, citta, via, data, oraInizio, oraFine, prezzo, maxPartecipanti, emailOrganizzatore " +
+                    "FROM `eventsdb` " +
+                    "JOIN categoriesdb ON categoriesdb.id = eventsdb.categoria "+
+                    "WHERE eventsdb.id = "+id
+
+        );
         if(datiEvento.isEmpty())
             datiEvento.add(0,Map.of("success",Boolean.FALSE));
         return datiEvento;

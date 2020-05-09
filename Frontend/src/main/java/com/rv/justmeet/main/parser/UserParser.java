@@ -59,7 +59,7 @@ public class UserParser {
             JSONObject jsonObj;
             for(int x = 0 ; x < jsonUtenti.length() ; x++) {
                 jsonObj = jsonUtenti.getJSONObject(0);
-                partecipanti.put(x,jsonObj.getString("email"));
+                partecipanti.put(x,jsonObj.getString("emailUtente"));
             }
         } catch (JSONException e) {
             printer.accept(e.getMessage());
