@@ -20,3 +20,23 @@ Gli utenti vengono notificati dal sistema nei casi in cui:
 </ul>
 
 Nello sviluppo dell’applicazione sarà necessario focalizzarsi e definire la lista degli eventi che la piattaforma supporta.
+
+<h2>Utilizzo:</h2>
+<h3>Avvio backend</h3>
+<code>gradlew bootRun</code>
+<br><br>Alternativamente avviare l'eseguibile all'interno della cartella build/libs tramite:
+<br><code>java -jar justmeet-0.0.1-SNAPSHOT.jar</code> 
+<br><h3>Avvio Frontend </h3>
+<code>gradlew run</code> 
+<br>Alternativamente avviare l'eseguibile all'interno della cartella Frontend/out/artifacts/Frontend_jar tramite:
+<code>java -jar justmeet.jar</code>
+<br><br> A questo punto sarà possibile utilizzare il programma.
+
+<h2>Generazione eseguibile</h2>
+<h3>Backend</h3>
+<code>gradlew build</code>
+<br><br>L'eseguibile si troverà all'interno della cartella <code>backend/build/libs/justmeet-0.0.1-SNAPSHOT.jar</code>
+<h3>Frontend</h3>
+<code>gradlew bootJar</code>
+<br><br>L'eseguibile si troverà nella cartella <code>Frontend/out/artifacts/Frontend_jar/Frontend.jar</code>
+<br><br>PS: Prima di avviare il backend è necessario avere implementato un database, per fare questo si può importare la struttura del database inserita nel path justmeet/backend/justmeet.sql
